@@ -1,50 +1,38 @@
-# Welcome to your Expo app 👋
+# Media Tracker
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+> Expo + Firebase app to track movies, shows, books, and games.
 
-## Get started
+## Stack
 
-1. Install dependencies
+- Expo (React Native), Expo Router
+- React Native Paper
+- Zustand + TanStack Query
+- Firebase Auth + Firestore
 
-   ```bash
-   npm install
-   ```
+## Features
 
-2. Start the app
+- Sign In / Sign Up: Google OAuth flow via Expo Auth Session → routes to your library.
+- Library: Card list of your media; quick access to details; supports search, filters, sort.
+- Item Details: View full info, notes, status, and rating; open edit/delete actions.
+- Add / Edit Item: Form to create or update media entries; persists to Firestore.
+- Settings: App preferences and account actions (e.g., sign out).
 
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+## Setup
 
 ```bash
-npm run reset-project
+git clone <repo-url>
+cd media-tracker
+npm i
+cp .env.example .env
+npx expo start
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+### Firebase
 
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+- Create a Firebase project → copy config to .env (apiKey, authDomain, projectId, storageBucket, messagingSenderId, appId).
+- Authentication → enable Google (set support email).
+- Google OAuth clients (Google Cloud Console → Credentials):
+- Web/Expo: add the redirect URIs printed by Expo; set EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID and EXPO_PUBLIC_GOOGLE_EXPO_CLIENT_ID.
+- iOS/Android (for native builds): create clients and set EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID / EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID (add SHA‑1/256).
+- App scheme for redirects: process.env.EXPO_PUBLIC_SCHEME || "mediatracker".
+- Firestore: create DB (test mode for dev), add rules (firestore.rules) and composite indexes for queries (firestore.indexes.json)

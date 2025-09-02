@@ -1,29 +1,37 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import 'react-native-reanimated';
+import { useUI } from '@/stores/ui.store';
+import { darkTheme, lightTheme } from '@/theme';
+import { useToastConfig } from '@/theme/toastConfig';
+import { showErrorToast } from '@/utils/helpers/toast';
+import { MutationCache, QueryCache, QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { Slot } from 'expo-router';
+import { Provider as PaperProvider } from 'react-native-paper';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Toast from 'react-native-toast-message';
 
-import { useColorScheme } from '@/hooks/useColorScheme';
+const queryClient = new QueryClient({
+  queryCache: new QueryCache({
+    onError: (error: Error) => showErrorToast(error),
+  }),
+  mutationCache: new MutationCache({
+    onError: (error: Error) => showErrorToast(error),
+  }),
+  defaultOptions: { queries: { retry: 1 } },
+});
 
-export default function RootLayout() {
-  const colorScheme = useColorScheme();
-  const [loaded] = useFonts({
-    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
-  });
-
-  if (!loaded) {
-    // Async font loading only occurs in development.
-    return null;
-  }
+const RootLayout = () => {
+  const themePref = useUI((s) => s.theme);
+  const theme = themePref === 'dark' ? darkTheme : lightTheme;
+  const toastConfig = useToastConfig();
+  const insets = useSafeAreaInsets();
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="+not-found" />
-      </Stack>
-      <StatusBar style="auto" />
-    </ThemeProvider>
+    <QueryClientProvider client={queryClient}>
+      <PaperProvider theme={theme}>
+        <Slot />
+        <Toast config={toastConfig} topOffset={insets.top + 12} />
+      </PaperProvider>
+    </QueryClientProvider>
   );
-}
+};
+
+export default RootLayout;
