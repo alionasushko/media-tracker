@@ -2,20 +2,27 @@ import AppButton from '@/components/ui/AppButton';
 import { commonStyles } from '@/styles/common';
 import { AddItemSchema, statusButtons, typeButtons } from '@/utils/constants/add-media';
 import FormTextInput from '@components/form/FormTextInput';
+import CoverUploader from '@components/media/CoverUploader';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useCreateItem } from '@queries/media.queries';
+import { useCreateItem, useUpdateItem } from '@queries/media.queries';
 import { auth } from '@services/firebase';
 import { router } from 'expo-router';
 import { Controller, useForm } from 'react-hook-form';
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native';
 import { Appbar, SegmentedButtons, Text, useTheme } from 'react-native-paper';
 import { z } from 'zod';
+import { uploadCoverForItem } from '@services/storage';
+import { useState } from 'react';
+import { showErrorToast } from '@/utils/helpers/toast';
 
 type FormValues = z.infer<typeof AddItemSchema>;
 
 const AddItem = () => {
   const theme = useTheme();
+  const ownerId = auth.currentUser?.uid!;
   const create = useCreateItem();
+  const update = useUpdateItem(ownerId);
+  const [coverUri, setCoverUri] = useState<string | null>(null);
 
   const {
     control,
@@ -28,13 +35,23 @@ const AddItem = () => {
   });
 
   const onSubmit = async ({ title, notes, type, status }: FormValues) => {
-    await create.mutateAsync({
-      ownerId: auth.currentUser?.uid!,
+    const created = await create.mutateAsync({
+      ownerId,
       title: title.trim(),
       notes: notes.trim(),
       type,
       status,
     });
+
+    if (coverUri && created?.id) {
+      try {
+        const url = await uploadCoverForItem(ownerId, created.id, coverUri);
+        await update.mutateAsync({ id: created.id, patch: { coverUrl: url } });
+      } catch (e) {
+        showErrorToast(e, 'Cover upload failed');
+      }
+    }
+
     router.back();
     router.replace('/(app)');
   };
@@ -56,6 +73,7 @@ const AddItem = () => {
       >
         <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={styles.scrollView}>
           <View style={styles.gap24}>
+            <CoverUploader value={coverUri} onChange={setCoverUri} />
             <View style={styles.gap12}>
               <Text variant="titleMedium">Details</Text>
               <FormTextInput

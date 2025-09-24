@@ -33,6 +33,13 @@
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
         }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow $(PRODUCT_NAME) to access your photos to add a cover.",
+          "cameraPermission": "Allow $(PRODUCT_NAME) to use your camera to take a cover photo."
+        }
       ]
     ],
     "experiments": {

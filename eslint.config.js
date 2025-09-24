@@ -6,7 +6,6 @@ module.exports = defineConfig([
   { ignores: ['node_modules', 'dist', 'build', '.expo', 'android', 'ios', 'web-build'] },
   ...expo,
   {
-    plugins: { import: require('eslint-plugin-import') },
     settings: {
       'import/parsers': { '@typescript-eslint/parser': ['.ts', '.tsx'] },
       'import/resolver': {

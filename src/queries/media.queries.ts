@@ -1,12 +1,6 @@
 import type { MediaFilters, UserItem } from '@/types/media';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import {
-  createUserItem,
-  deleteUserItem,
-  getUserItem,
-  listUserItems,
-  updateUserItem,
-} from './media.api';
+import { createUserItem, deleteUserItem, getUserItem, listUserItems, updateUserItem, } from './media.api';
 
 export const useCreateItem = () => {
   const qc = useQueryClient();
@@ -18,11 +12,17 @@ export const useCreateItem = () => {
   });
 };
 
-export const useUpdateItem = () =>
-  useMutation({
+export const useUpdateItem = (ownerId: string) => {
+  const qc = useQueryClient();
+  return useMutation({
     mutationFn: ({ id, patch }: { id: string; patch: Partial<UserItem> }) =>
       updateUserItem(id, patch),
+    onSuccess: (_res, variables) => {
+      qc.invalidateQueries({ queryKey: ['userItem', variables.id] });
+      qc.invalidateQueries({ queryKey: ['userItems', ownerId] });
+    },
   });
+};
 
 export const useDeleteItem = (ownerId: string) => {
   const qc = useQueryClient();

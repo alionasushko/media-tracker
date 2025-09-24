@@ -1,5 +1,7 @@
 {
   "projects": {
-    "default": "media-tracker-268e8"
-  }
+    "default": "media-tracker-268e8",
+  },
+  "targets": {},
+  "etags": {}
 }

@@ -13,4 +13,12 @@ export const commonStyles = StyleSheet.create({
   authTitle: { marginTop: 2, opacity: 0.7 },
   authFormComponentMargin: { marginTop: 8 },
   authBtnMargin: { marginTop: 12 },
+  preview: {
+    width: '100%',
+    aspectRatio: 16 / 9,
+    borderWidth: 1,
+    borderRadius: 8,
+    overflow: 'hidden',
+    backgroundColor: 'rgba(0,0,0,0.05)',
+  },
 });

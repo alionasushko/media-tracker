@@ -1,0 +1,17 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    function authed() { return request.auth != null; }
+
+    match /covers/{uid}/{fileName=**} {
+      allow get, list: if authed() && request.auth.uid == uid;
+
+      allow create, update: if authed()
+        && request.auth.uid == uid
+        && request.resource.size < 5 * 1024 * 1024      // < 5MB
+        && request.resource.contentType.matches('image/(jpeg|png|webp)');
+
+      allow delete: if authed() && request.auth.uid == uid;
+    }
+  }
+}

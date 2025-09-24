@@ -24,6 +24,8 @@ const FilterMenu = <T extends string>({
     <Menu
       visible={visible}
       onDismiss={() => onChangeVisibility(false)}
+      anchorPosition="bottom"
+      contentStyle={{ marginTop: 4 }}
       anchor={
         <View>
           <Text variant="labelSmall" style={styles.chipLabel}>

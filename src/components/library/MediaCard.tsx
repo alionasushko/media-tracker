@@ -1,11 +1,12 @@
 import Rating from '@/components/ui/Rating';
+import Cover from '@components/media/Cover';
 import { UserItem } from '@/types/media';
 import { Card } from 'react-native-paper';
 
 const MediaCard = ({ item, onPress }: { item: UserItem; onPress?: () => void }) => {
   return (
     <Card onPress={onPress}>
-      {item.coverUrl ? <Card.Cover source={{ uri: item.coverUrl }} /> : null}
+      <Cover path={item.coverUrl} />
       <Card.Title title={item.title} subtitle={`${item.type} • ${item.status}`} />
       {typeof item.rating === 'number' && item.rating > 0 ? (
         <Card.Content>
