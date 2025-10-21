@@ -1,28 +1,32 @@
 import { useStorageDownloadUrl } from '@/hooks/useStorageDownloadUrl';
 import { commonStyles } from '@/styles/common';
-import React from 'react';
+import { useState } from 'react';
 import type { StyleProp, ViewStyle } from 'react-native';
 import { Image, StyleSheet, View } from 'react-native';
 import { ActivityIndicator, Icon, IconButton, Text, useTheme } from 'react-native-paper';
+import CoverSourceMenu from './CoverSourceMenu';
 
 interface CoverProps {
   path?: string | null;
   showButtons?: boolean;
-  onEditPress?: () => void;
+  onTakePhoto?: () => void;
+  onPickFromLibrary?: () => void;
   onDeletePress?: () => void;
   previewStyle?: StyleProp<ViewStyle>;
 }
 
-const Cover: React.FC<CoverProps> = ({
+const Cover = ({
   path,
   showButtons,
-  onEditPress,
+  onTakePhoto,
+  onPickFromLibrary,
   onDeletePress,
   previewStyle,
-}) => {
+}: CoverProps) => {
   const isDirectUri = typeof path === 'string' && /:\/\//.test(path);
   const { url, loading, error } = useStorageDownloadUrl(isDirectUri ? undefined : path);
   const theme = useTheme();
+  const [menuVisible, setMenuVisible] = useState(false);
 
   if (!path) return null;
 
@@ -76,14 +80,22 @@ const Cover: React.FC<CoverProps> = ({
       />
       {showButtons ? (
         <View style={styles.overlayActions}>
-          {onEditPress ? (
-            <IconButton
-              icon="pencil"
-              accessibilityLabel="Change cover"
-              onPress={onEditPress}
-              iconColor={theme.colors.onPrimary}
-              containerColor={theme.colors.primary}
-              size={24}
+          {onTakePhoto && onPickFromLibrary ? (
+            <CoverSourceMenu
+              anchor={
+                <IconButton
+                  icon="pencil"
+                  accessibilityLabel="Change cover"
+                  onPress={() => setMenuVisible(true)}
+                  iconColor={theme.colors.onPrimary}
+                  containerColor={theme.colors.primary}
+                  size={24}
+                />
+              }
+              visible={menuVisible}
+              onDismiss={() => setMenuVisible(false)}
+              onTakePhoto={onTakePhoto}
+              onPickFromLibrary={onPickFromLibrary}
             />
           ) : null}
           {onDeletePress ? (

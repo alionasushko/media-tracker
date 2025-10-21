@@ -1,4 +1,4 @@
-import React from 'react';
+import type { ComponentProps } from 'react';
 import { Control, Controller } from 'react-hook-form';
 import { HelperText, TextInput } from 'react-native-paper';
 import { View } from 'react-native';
@@ -7,7 +7,7 @@ interface Props {
   control: Control<any>;
   name: string;
   label: string;
-  textInputProps?: Omit<React.ComponentProps<typeof TextInput>, 'label' | 'value' | 'onChangeText'>;
+  textInputProps?: Omit<ComponentProps<typeof TextInput>, 'label' | 'value' | 'onChangeText'>;
 }
 
 const FormTextInput = ({ control, name, label, textInputProps }: Props) => {

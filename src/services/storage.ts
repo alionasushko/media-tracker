@@ -1,11 +1,22 @@
 import { storage } from '@services/firebase';
 import { ImageManipulator, SaveFormat } from 'expo-image-manipulator';
-import * as ImagePicker from 'expo-image-picker';
+import { launchCameraAsync, launchImageLibraryAsync, requestCameraPermissionsAsync, } from 'expo-image-picker';
 import { deleteObject, getDownloadURL, ref, uploadBytes } from 'firebase/storage';
 import { Image } from 'react-native';
 
 export const pickImageFromLibrary = async () => {
-  const res = await ImagePicker.launchImageLibraryAsync({
+  const res = await launchImageLibraryAsync({
+    mediaTypes: 'images',
+  });
+  if (res.canceled) return null;
+  return res.assets[0].uri;
+};
+
+export const captureImageFromCamera = async () => {
+  const perm = await requestCameraPermissionsAsync();
+  if (perm.status !== 'granted') return null;
+
+  const res = await launchCameraAsync({
     mediaTypes: 'images',
   });
   if (res.canceled) return null;

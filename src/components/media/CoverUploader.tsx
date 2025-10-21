@@ -1,26 +1,21 @@
 import { commonStyles } from '@/styles/common';
-import { pickImageFromLibrary } from '@services/storage';
-import React from 'react';
-import { StyleSheet, View } from 'react-native';
-import { Text } from 'react-native-paper';
+import { captureImageFromCamera, pickImageFromLibrary } from '@services/storage';
 import Cover from './Cover';
 import CoverPlaceholder from './CoverPlaceholder';
 
 interface CoverUploaderProps {
   value: string | null;
   onChange: (uri: string | null) => void;
-  label?: string;
-  disabled?: boolean;
 }
 
-const CoverUploader: React.FC<CoverUploaderProps> = ({
-  value,
-  onChange,
-  label = 'Cover',
-  disabled,
-}) => {
-  const handlePick = async () => {
+const CoverUploader = ({ value, onChange }: CoverUploaderProps) => {
+  const handlePickFromLibrary = async () => {
     const uri = await pickImageFromLibrary();
+    if (uri) onChange(uri);
+  };
+
+  const handleTakePhoto = async () => {
+    const uri = await captureImageFromCamera();
     if (uri) onChange(uri);
   };
 
@@ -28,29 +23,22 @@ const CoverUploader: React.FC<CoverUploaderProps> = ({
     onChange(null);
   };
 
-  return (
-    <View style={styles.container}>
-      <Text variant="titleMedium">{label}</Text>
-      {value ? (
-        <Cover
-          path={value}
-          previewStyle={commonStyles.preview}
-          showButtons
-          onEditPress={handlePick}
-          onDeletePress={handleRemove}
-        />
-      ) : (
-        <CoverPlaceholder
-          onAddPress={disabled ? undefined : handlePick}
-          previewStyle={commonStyles.preview}
-        />
-      )}
-    </View>
+  return value ? (
+    <Cover
+      path={value}
+      previewStyle={commonStyles.preview}
+      showButtons
+      onTakePhoto={handleTakePhoto}
+      onPickFromLibrary={handlePickFromLibrary}
+      onDeletePress={handleRemove}
+    />
+  ) : (
+    <CoverPlaceholder
+      onTakePhoto={handleTakePhoto}
+      onPickFromLibrary={handlePickFromLibrary}
+      previewStyle={commonStyles.preview}
+    />
   );
 };
-
-const styles = StyleSheet.create({
-  container: { gap: 8 },
-});
 
 export default CoverUploader;

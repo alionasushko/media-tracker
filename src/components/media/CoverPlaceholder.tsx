@@ -1,21 +1,24 @@
 import { commonStyles } from '@/styles/common';
-import React from 'react';
+import { useState } from 'react';
 import type { StyleProp, ViewStyle } from 'react-native';
 import { StyleSheet, View } from 'react-native';
-import { ActivityIndicator, Icon, IconButton, useTheme } from 'react-native-paper';
+import { Icon, IconButton, useTheme } from 'react-native-paper';
+import CoverSourceMenu from './CoverSourceMenu';
 
 interface CoverPlaceholderProps {
-  loading?: boolean;
-  onAddPress?: () => void;
+  onTakePhoto: () => void;
+  onPickFromLibrary: () => void;
   previewStyle?: StyleProp<ViewStyle>;
 }
 
-const CoverPlaceholder: React.FC<CoverPlaceholderProps> = ({
-  loading,
-  onAddPress,
+const CoverPlaceholder = ({
+  onTakePhoto,
+  onPickFromLibrary,
   previewStyle,
-}) => {
+}: CoverPlaceholderProps) => {
   const theme = useTheme();
+  const [menuVisible, setMenuVisible] = useState(false);
+
   return (
     <View
       style={[
@@ -25,24 +28,26 @@ const CoverPlaceholder: React.FC<CoverPlaceholderProps> = ({
       ]}
     >
       <View style={styles.centerContent}>
-        {loading ? (
-          <ActivityIndicator />
-        ) : (
-          <Icon source="image-outline" size={48} color={theme.colors.outline} />
-        )}
+        <Icon source="image-outline" size={48} color={theme.colors.outline} />
       </View>
-      {!loading && onAddPress ? (
-        <View style={styles.overlayActions}>
-          <IconButton
-            icon="plus"
-            accessibilityLabel="Add cover"
-            onPress={onAddPress}
-            iconColor={theme.colors.onPrimary}
-            containerColor={theme.colors.primary}
-            size={24}
-          />
-        </View>
-      ) : null}
+      <View style={styles.overlayActions}>
+        <CoverSourceMenu
+          anchor={
+            <IconButton
+              icon="plus"
+              accessibilityLabel="Add cover"
+              onPress={() => setMenuVisible(true)}
+              iconColor={theme.colors.onPrimary}
+              containerColor={theme.colors.primary}
+              size={24}
+            />
+          }
+          visible={menuVisible}
+          onDismiss={() => setMenuVisible(false)}
+          onTakePhoto={onTakePhoto}
+          onPickFromLibrary={onPickFromLibrary}
+        />
+      </View>
     </View>
   );
 };

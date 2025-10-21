@@ -5,14 +5,12 @@ import { commonStyles } from '@/styles/common';
 import { AddItemSchema } from '@/utils/constants/add-media';
 import { statuses } from '@/utils/constants/library';
 import { showErrorToast } from '@/utils/helpers/toast';
-import Cover from '@components/media/Cover';
-import CoverPlaceholder from '@components/media/CoverPlaceholder';
+import CoverUploader from '@components/media/CoverUploader';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useDeleteItem, useUpdateItemOptimistic, useUserItem } from '@queries/media.queries';
 import { auth } from '@services/firebase';
-import { deleteCoverByUrl, pickImageFromLibrary, uploadCoverForItem } from '@services/storage';
+import { deleteCoverByUrl, uploadCoverForItem } from '@services/storage';
 import { router, useLocalSearchParams } from 'expo-router';
-import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { Appbar, Card, Chip, TextInput, useTheme } from 'react-native-paper';
@@ -27,7 +25,6 @@ const ItemDetail = () => {
   const ownerId = auth.currentUser?.uid!;
   const update = useUpdateItemOptimistic(ownerId);
   const del = useDeleteItem(ownerId);
-  const [isUploadingCover, setIsUploadingCover] = useState(false);
 
   const {
     control,
@@ -64,11 +61,23 @@ const ItemDetail = () => {
   };
   const handleGoBack = () => router.back();
 
-  const handleChangeCover = async () => {
+  const handleCoverChange = async (uri: string | null) => {
+    if (uri === null) {
+      if (!data?.coverUrl) return;
+      try {
+        try {
+          await deleteCoverByUrl(data.coverUrl);
+        } catch (e) {
+          console.error(e);
+        }
+        await update.mutateAsync({ id, patch: { coverUrl: undefined } });
+      } catch (e) {
+        showErrorToast(e, 'Failed to delete cover');
+      }
+      return;
+    }
+
     try {
-      const uri = await pickImageFromLibrary();
-      if (!uri) return;
-      setIsUploadingCover(true);
       const newUrl = await uploadCoverForItem(ownerId, id, uri);
       await update.mutateAsync({ id, patch: { coverUrl: newUrl } });
       if (data?.coverUrl && data.coverUrl !== newUrl) {
@@ -80,25 +89,6 @@ const ItemDetail = () => {
       }
     } catch (e) {
       showErrorToast(e, 'Failed to change cover');
-    } finally {
-      setIsUploadingCover(false);
-    }
-  };
-
-  const handleRemoveCover = async () => {
-    if (!data?.coverUrl) return;
-    try {
-      setIsUploadingCover(true);
-      try {
-        await deleteCoverByUrl(data.coverUrl);
-      } catch (e) {
-        console.error(e);
-      }
-      await update.mutateAsync({ id, patch: { coverUrl: null as any } });
-    } catch (e) {
-      showErrorToast(e, 'Failed to remove cover');
-    } finally {
-      setIsUploadingCover(false);
     }
   };
 
@@ -112,16 +102,7 @@ const ItemDetail = () => {
 
       <ScrollView style={styles.scrollView}>
         <Card>
-          {data.coverUrl ? (
-            <Cover
-              path={data.coverUrl}
-              showButtons={!isUploadingCover}
-              onEditPress={handleChangeCover}
-              onDeletePress={handleRemoveCover}
-            />
-          ) : (
-            <CoverPlaceholder loading={isUploadingCover} onAddPress={handleChangeCover} />
-          )}
+          <CoverUploader value={data.coverUrl ?? null} onChange={handleCoverChange} />
           <Card.Title title={data.title} subtitle={data.type.toUpperCase()} />
           <Card.Content>
             <View style={styles.statusChipContainer}>
@@ -165,7 +146,6 @@ const styles = StyleSheet.create({
   scrollView: { padding: 12 },
   statusChipContainer: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 8 },
   typeChipContainer: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  coverActions: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 12 },
   notesInput: { minHeight: 100, textAlignVertical: 'top', marginTop: 24 },
 });
 

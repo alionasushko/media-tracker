@@ -1,4 +1,3 @@
-import React from 'react';
 import { StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
 import { Icon, Text, useTheme } from 'react-native-paper';
 
@@ -40,7 +39,7 @@ const LogoTile = ({
   </View>
 );
 
-const Logo: React.FC<Props> = ({ variant = 'wordmark', size = 'md', showIcon = false }) => {
+const Logo = ({ variant = 'wordmark', size = 'md', showIcon = false }: Props) => {
   const { colors } = useTheme();
   const fontSize = sizeToPx(size);
   const box = fontSize + 8;

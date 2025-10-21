@@ -1,19 +1,19 @@
 import AppButton from '@/components/ui/AppButton';
 import { commonStyles } from '@/styles/common';
 import { AddItemSchema, statusButtons, typeButtons } from '@/utils/constants/add-media';
+import { showErrorToast } from '@/utils/helpers/toast';
 import FormTextInput from '@components/form/FormTextInput';
 import CoverUploader from '@components/media/CoverUploader';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useCreateItem, useUpdateItem } from '@queries/media.queries';
 import { auth } from '@services/firebase';
+import { uploadCoverForItem } from '@services/storage';
 import { router } from 'expo-router';
+import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native';
 import { Appbar, SegmentedButtons, Text, useTheme } from 'react-native-paper';
 import { z } from 'zod';
-import { uploadCoverForItem } from '@services/storage';
-import { useState } from 'react';
-import { showErrorToast } from '@/utils/helpers/toast';
 
 type FormValues = z.infer<typeof AddItemSchema>;
 
@@ -73,7 +73,10 @@ const AddItem = () => {
       >
         <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={styles.scrollView}>
           <View style={styles.gap24}>
-            <CoverUploader value={coverUri} onChange={setCoverUri} />
+            <View style={styles.gap12}>
+              <Text variant="titleMedium">Cover</Text>
+              <CoverUploader value={coverUri} onChange={setCoverUri} />
+            </View>
             <View style={styles.gap12}>
               <Text variant="titleMedium">Details</Text>
               <FormTextInput
