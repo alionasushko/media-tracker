@@ -2,19 +2,21 @@ import { commonStyles } from '@/styles/common';
 import { useState } from 'react';
 import type { StyleProp, ViewStyle } from 'react-native';
 import { StyleSheet, View } from 'react-native';
-import { Icon, IconButton, useTheme } from 'react-native-paper';
+import { ActivityIndicator, Icon, IconButton, useTheme } from 'react-native-paper';
 import CoverSourceMenu from './CoverSourceMenu';
 
 interface CoverPlaceholderProps {
+  loading?: boolean;
+  previewStyle?: StyleProp<ViewStyle>;
   onTakePhoto: () => void;
   onPickFromLibrary: () => void;
-  previewStyle?: StyleProp<ViewStyle>;
 }
 
 const CoverPlaceholder = ({
+  loading,
+  previewStyle,
   onTakePhoto,
   onPickFromLibrary,
-  previewStyle,
 }: CoverPlaceholderProps) => {
   const theme = useTheme();
   const [menuVisible, setMenuVisible] = useState(false);
@@ -28,7 +30,11 @@ const CoverPlaceholder = ({
       ]}
     >
       <View style={styles.centerContent}>
-        <Icon source="image-outline" size={48} color={theme.colors.outline} />
+        {loading ? (
+          <ActivityIndicator />
+        ) : (
+          <Icon source="image-outline" size={48} color={theme.colors.outline} />
+        )}
       </View>
       <View style={styles.overlayActions}>
         <CoverSourceMenu

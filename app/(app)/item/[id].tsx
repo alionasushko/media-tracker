@@ -11,6 +11,7 @@ import { useDeleteItem, useUpdateItemOptimistic, useUserItem } from '@queries/me
 import { auth } from '@services/firebase';
 import { deleteCoverByUrl, uploadCoverForItem } from '@services/storage';
 import { router, useLocalSearchParams } from 'expo-router';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { Appbar, Card, Chip, TextInput, useTheme } from 'react-native-paper';
@@ -25,6 +26,7 @@ const ItemDetail = () => {
   const ownerId = auth.currentUser?.uid!;
   const update = useUpdateItemOptimistic(ownerId);
   const del = useDeleteItem(ownerId);
+  const [isUploadingCover, setIsUploadingCover] = useState(false);
 
   const {
     control,
@@ -61,8 +63,9 @@ const ItemDetail = () => {
   };
   const handleGoBack = () => router.back();
 
-  const handleCoverChange = async (uri: string | null) => {
-    if (uri === null) {
+  const handleDeleteCover = async () => {
+    setIsUploadingCover(true);
+    try {
       if (!data?.coverUrl) return;
       try {
         try {
@@ -70,26 +73,39 @@ const ItemDetail = () => {
         } catch (e) {
           console.error(e);
         }
-        await update.mutateAsync({ id, patch: { coverUrl: undefined } });
+        await update.mutateAsync({ id, patch: { coverUrl: null } });
       } catch (e) {
         showErrorToast(e, 'Failed to delete cover');
       }
-      return;
+    } finally {
+      setIsUploadingCover(false);
     }
+  };
 
+  const handleUploadCover = async (uri: string) => {
+    setIsUploadingCover(true);
     try {
-      const newUrl = await uploadCoverForItem(ownerId, id, uri);
-      await update.mutateAsync({ id, patch: { coverUrl: newUrl } });
-      if (data?.coverUrl && data.coverUrl !== newUrl) {
-        try {
-          await deleteCoverByUrl(data.coverUrl);
-        } catch (e) {
-          console.error(e);
+      try {
+        const newUrl = await uploadCoverForItem(ownerId, id, uri);
+        await update.mutateAsync({ id, patch: { coverUrl: newUrl } });
+        if (data?.coverUrl) {
+          try {
+            await deleteCoverByUrl(data.coverUrl);
+          } catch (e) {
+            console.error(e);
+          }
         }
+      } catch (e) {
+        showErrorToast(e, 'Failed to change cover');
       }
-    } catch (e) {
-      showErrorToast(e, 'Failed to change cover');
+    } finally {
+      setIsUploadingCover(false);
     }
+  };
+
+  const handleCoverChange = (uri: string | null) => {
+    if (uri === null) handleDeleteCover();
+    else handleUploadCover(uri);
   };
 
   return (
@@ -102,7 +118,11 @@ const ItemDetail = () => {
 
       <ScrollView style={styles.scrollView}>
         <Card>
-          <CoverUploader value={data.coverUrl ?? null} onChange={handleCoverChange} />
+          <CoverUploader
+            value={data.coverUrl ?? null}
+            loading={isUploadingCover}
+            onChange={handleCoverChange}
+          />
           <Card.Title title={data.title} subtitle={data.type.toUpperCase()} />
           <Card.Content>
             <View style={styles.statusChipContainer}>

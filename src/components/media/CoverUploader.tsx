@@ -5,10 +5,11 @@ import CoverPlaceholder from './CoverPlaceholder';
 
 interface CoverUploaderProps {
   value: string | null;
+  loading?: boolean;
   onChange: (uri: string | null) => void;
 }
 
-const CoverUploader = ({ value, onChange }: CoverUploaderProps) => {
+const CoverUploader = ({ value, loading, onChange }: CoverUploaderProps) => {
   const handlePickFromLibrary = async () => {
     const uri = await pickImageFromLibrary();
     if (uri) onChange(uri);
@@ -26,6 +27,7 @@ const CoverUploader = ({ value, onChange }: CoverUploaderProps) => {
   return value ? (
     <Cover
       path={value}
+      loading={loading}
       previewStyle={commonStyles.preview}
       showButtons
       onTakePhoto={handleTakePhoto}
@@ -34,9 +36,10 @@ const CoverUploader = ({ value, onChange }: CoverUploaderProps) => {
     />
   ) : (
     <CoverPlaceholder
+      loading={loading}
+      previewStyle={commonStyles.preview}
       onTakePhoto={handleTakePhoto}
       onPickFromLibrary={handlePickFromLibrary}
-      previewStyle={commonStyles.preview}
     />
   );
 };

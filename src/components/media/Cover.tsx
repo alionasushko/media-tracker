@@ -8,29 +8,35 @@ import CoverSourceMenu from './CoverSourceMenu';
 
 interface CoverProps {
   path?: string | null;
+  loading?: boolean;
+  previewStyle?: StyleProp<ViewStyle>;
   showButtons?: boolean;
   onTakePhoto?: () => void;
   onPickFromLibrary?: () => void;
   onDeletePress?: () => void;
-  previewStyle?: StyleProp<ViewStyle>;
 }
 
 const Cover = ({
   path,
+  loading,
+  previewStyle,
   showButtons,
   onTakePhoto,
   onPickFromLibrary,
   onDeletePress,
-  previewStyle,
 }: CoverProps) => {
   const isDirectUri = typeof path === 'string' && /:\/\//.test(path);
-  const { url, loading, error } = useStorageDownloadUrl(isDirectUri ? undefined : path);
+  const {
+    url,
+    loading: fetchingUrl,
+    error,
+  } = useStorageDownloadUrl(isDirectUri ? undefined : path);
   const theme = useTheme();
   const [menuVisible, setMenuVisible] = useState(false);
 
   if (!path) return null;
 
-  if (!isDirectUri && loading) {
+  if (loading || (!isDirectUri && fetchingUrl)) {
     return (
       <View
         style={[

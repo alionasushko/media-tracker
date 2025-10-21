@@ -1,6 +1,10 @@
 import { storage } from '@services/firebase';
 import { ImageManipulator, SaveFormat } from 'expo-image-manipulator';
-import { launchCameraAsync, launchImageLibraryAsync, requestCameraPermissionsAsync, } from 'expo-image-picker';
+import {
+  launchCameraAsync,
+  launchImageLibraryAsync,
+  requestCameraPermissionsAsync,
+} from 'expo-image-picker';
 import { deleteObject, getDownloadURL, ref, uploadBytes } from 'firebase/storage';
 import { Image } from 'react-native';
 
