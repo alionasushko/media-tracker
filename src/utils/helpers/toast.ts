@@ -1,15 +1,21 @@
-import { FirebaseError } from 'firebase/app';
 import Toast from 'react-native-toast-message';
+
+const isFirebaseError = (e: unknown): e is Error & { code: string } =>
+  e instanceof Error && typeof (e as { code?: unknown }).code === 'string';
 
 export const getErrorMessage = (error: unknown) => {
   let message = 'Something went wrong. Please try again.';
 
-  if (error instanceof FirebaseError) {
+  if (isFirebaseError(error)) {
     switch (error.code) {
       // Firebase Auth errors
       case 'auth/invalid-credential':
       case 'auth/wrong-password':
         message = 'The email or password you entered is incorrect.';
+        break;
+      case 'auth/account-exists-with-different-credential':
+        message =
+          'An account with the same email exists using a different sign-in method. Sign in with that method first, then link Google in settings.';
         break;
       case 'auth/user-not-found':
         message = 'No account found with this email.';
@@ -25,6 +31,12 @@ export const getErrorMessage = (error: unknown) => {
         break;
       case 'auth/network-request-failed':
         message = 'Network error. Check your internet connection.';
+        break;
+      case 'auth/operation-not-allowed':
+        message = 'This sign-in method is not enabled in Firebase.';
+        break;
+      case 'auth/unauthorized-domain':
+        message = 'This domain is not authorized for OAuth. Add it in Firebase Auth settings.';
         break;
 
       // Firestore/Storage errors

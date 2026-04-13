@@ -3,7 +3,8 @@ import { commonStyles } from '@/styles/common';
 import { auth } from '@services/firebase';
 import { useUI } from '@stores/ui.store';
 import { router } from 'expo-router';
-import { signOut } from 'firebase/auth';
+import { signOut } from '@react-native-firebase/auth';
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { Appbar, Card, Icon, RadioButton, Text, useTheme } from 'react-native-paper';
 
@@ -13,6 +14,9 @@ const Settings = () => {
   const paperTheme = useTheme();
 
   const handleSignOut = async () => {
+    try {
+      await GoogleSignin.signOut();
+    } catch {}
     await signOut(auth);
     router.replace('/(auth)/sign-in');
   };

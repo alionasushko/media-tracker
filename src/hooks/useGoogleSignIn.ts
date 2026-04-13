@@ -1,33 +1,55 @@
-import { makeRedirectUri } from 'expo-auth-session';
-import * as Google from 'expo-auth-session/providers/google';
-import * as WebBrowser from 'expo-web-browser';
-import { GoogleAuthProvider, signInWithCredential } from 'firebase/auth';
-import { useEffect } from 'react';
-import { auth } from '../services/firebase';
+import { auth } from '@services/firebase';
+import { showErrorToast } from '@/utils/helpers/toast';
+import { GoogleAuthProvider, signInWithCredential } from '@react-native-firebase/auth';
+import {
+  GoogleSignin,
+  statusCodes,
+  isErrorWithCode,
+} from '@react-native-google-signin/google-signin';
+import { router } from 'expo-router';
+import { useEffect, useState } from 'react';
 
-WebBrowser.maybeCompleteAuthSession();
+GoogleSignin.configure({
+  webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
+});
 
 export const useGoogleSignIn = () => {
-  const redirectUri = makeRedirectUri({ scheme: process.env.EXPO_PUBLIC_SCHEME || 'mediatracker' });
-
-  const [request, response, promptAsync] = Google.useIdTokenAuthRequest({
-    clientId: process.env.EXPO_PUBLIC_GOOGLE_EXPO_CLIENT_ID,
-    iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
-    androidClientId: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID,
-    webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
-    redirectUri,
-  });
+  const [isSigningIn, setIsSigningIn] = useState(false);
+  const [hasPlayServices, setHasPlayServices] = useState(false);
 
   useEffect(() => {
-    const run = async () => {
-      if (response?.type === 'success') {
-        const idToken = response.params.id_token;
-        const credential = GoogleAuthProvider.credential(idToken);
-        await signInWithCredential(auth, credential);
-      }
-    };
-    run();
-  }, [response]);
+    GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true })
+      .then(() => setHasPlayServices(true))
+      .catch(() => setHasPlayServices(false));
+  }, []);
 
-  return { request, promptAsync };
+  const signInWithGoogle = async () => {
+    try {
+      setIsSigningIn(true);
+      await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
+      const response = await GoogleSignin.signIn();
+
+      if (response.type !== 'success') {
+        return;
+      }
+
+      const idToken = response.data.idToken;
+      if (!idToken) {
+        throw new Error('Google sign-in did not return an ID token');
+      }
+
+      const credential = GoogleAuthProvider.credential(idToken);
+      await signInWithCredential(auth, credential);
+      router.replace('/');
+    } catch (e) {
+      if (isErrorWithCode(e) && e.code === statusCodes.SIGN_IN_CANCELLED) {
+        return;
+      }
+      showErrorToast(e);
+    } finally {
+      setIsSigningIn(false);
+    }
+  };
+
+  return { signInWithGoogle, isSigningIn, ready: hasPlayServices };
 };

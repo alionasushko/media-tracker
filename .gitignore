@@ -10,6 +10,8 @@ web-build/
 expo-env.d.ts
 
 # Native
+ios/
+android/
 .kotlin/
 *.orig.*
 *.jks
@@ -30,8 +32,15 @@ yarn-error.*
 .DS_Store
 *.pem
 
+# JetBrains IDEs
+.idea/
+
 # local env files
 .env
+
+# Firebase credentials
+GoogleService-Info.plist
+google-services.json
 
 # typescript
 *.tsbuildinfo

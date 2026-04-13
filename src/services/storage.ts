@@ -1,11 +1,16 @@
 import { storage } from '@services/firebase';
+import {
+  deleteObject,
+  getDownloadURL,
+  putFile,
+  ref,
+} from '@react-native-firebase/storage';
 import { ImageManipulator, SaveFormat } from 'expo-image-manipulator';
 import {
   launchCameraAsync,
   launchImageLibraryAsync,
   requestCameraPermissionsAsync,
 } from 'expo-image-picker';
-import { deleteObject, getDownloadURL, ref, uploadBytes } from 'firebase/storage';
 import { Image } from 'react-native';
 
 export const pickImageFromLibrary = async () => {
@@ -66,16 +71,13 @@ const processCoverImage = async (
 
 export const uploadCoverForItem = async (ownerId: string, itemId: string, uri: string) => {
   const processed = await processCoverImage(uri);
-  const response = await fetch(processed.uri);
-  const blob = await response.blob();
-
-  const ct = processed.contentType || (blob as any).type || 'image/jpeg';
-  const ext = 'jpg';
+  const ct = processed.contentType || 'image/jpeg';
+  const ext = processed.ext || 'jpg';
 
   const version = Date.now();
   const path = `covers/${ownerId}/${itemId}_${version}.${ext}`;
   const objectRef = ref(storage, path);
-  await uploadBytes(objectRef, blob, { contentType: ct });
+  await putFile(objectRef, processed.uri, { contentType: ct });
 
   return path;
 };

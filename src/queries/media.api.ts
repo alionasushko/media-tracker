@@ -11,7 +11,7 @@ import {
   query,
   updateDoc,
   where,
-} from 'firebase/firestore';
+} from '@react-native-firebase/firestore';
 
 const COL = 'items';
 
@@ -56,7 +56,6 @@ export const getUserItem = async (id: string) => {
 export const listUserItems = async (ownerId: string, filters: MediaFilters) => {
   const constraints: any[] = [where('ownerId', '==', ownerId)];
 
-  // Server-side filters
   if (filters.status && filters.status !== 'all') {
     constraints.push(where('status', '==', filters.status));
   }
@@ -65,17 +64,15 @@ export const listUserItems = async (ownerId: string, filters: MediaFilters) => {
     constraints.push(where('type', '==', filters.type));
   }
 
-  // Server-side sorting
   const sortKey = filters.sort?.key ?? 'updatedAt';
   const sortOrder = filters.sort?.order ?? 'desc';
   constraints.push(orderBy(sortKey, sortOrder));
 
-  const q = query(collection(db, 'items'), ...constraints);
+  const q = query(collection(db, COL), ...constraints);
   const snap = await getDocs(q);
 
   let items = snap.docs.map((d) => ({ id: d.id, ...d.data() }) as UserItem);
 
-  // Client-side text search
   if (filters.q) {
     const qLower = filters.q.toLowerCase();
     items = items.filter((i) => i.title.toLowerCase().includes(qLower));

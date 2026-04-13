@@ -4,9 +4,10 @@ import { showErrorToast } from '@/utils/helpers/toast';
 import FormTextInput from '@components/form/FormTextInput';
 import Logo from '@components/ui/Logo';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useGoogleSignIn } from '@hooks/useGoogleSignIn';
 import { auth } from '@services/firebase';
 import { router } from 'expo-router';
-import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
+import { createUserWithEmailAndPassword, updateProfile } from '@react-native-firebase/auth';
 import { useForm } from 'react-hook-form';
 import { View } from 'react-native';
 import { Card, Text, useTheme } from 'react-native-paper';
@@ -41,6 +42,8 @@ const SignUp = () => {
     resolver: zodResolver(schema),
     defaultValues: { name: '', email: '', password: '' },
   });
+
+  const { signInWithGoogle, isSigningIn, ready } = useGoogleSignIn();
 
   const handleSignUp = async ({ name, email, password }: FormValues) => {
     try {
@@ -87,6 +90,16 @@ const SignUp = () => {
             onPress={handleSubmit(handleSignUp)}
           >
             Create Account
+          </AppButton>
+          <AppButton
+            icon="google"
+            mode="outlined"
+            style={commonStyles.authFormComponentMargin}
+            loading={isSigningIn}
+            disabled={!ready || isSigningIn}
+            onPress={signInWithGoogle}
+          >
+            Continue with Google
           </AppButton>
           <AppButton
             onPress={() => router.push('/(auth)/sign-in')}

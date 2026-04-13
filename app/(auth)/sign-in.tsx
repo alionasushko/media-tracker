@@ -7,7 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useGoogleSignIn } from '@hooks/useGoogleSignIn';
 import { auth } from '@services/firebase';
 import { router } from 'expo-router';
-import { signInWithEmailAndPassword } from 'firebase/auth';
+import { signInWithEmailAndPassword } from '@react-native-firebase/auth';
 import { useForm } from 'react-hook-form';
 import { View } from 'react-native';
 import { Card, Text, useTheme } from 'react-native-paper';
@@ -35,7 +35,7 @@ const SignIn = () => {
     defaultValues: { email: '', password: '' },
   });
 
-  const { promptAsync, request } = useGoogleSignIn();
+  const { signInWithGoogle, isSigningIn, ready } = useGoogleSignIn();
 
   const handleSignIn = async ({ email, password }: FormValues) => {
     try {
@@ -45,10 +45,6 @@ const SignIn = () => {
       showErrorToast(e);
     }
   };
-
-  // const handleSignInWithGoogle = async () => {
-  //   await promptAsync();
-  // };
 
   return (
     <View style={[commonStyles.authContainer, { backgroundColor: theme.colors.background }]}>
@@ -81,18 +77,16 @@ const SignIn = () => {
           >
             Sign In
           </AppButton>
-          {/**
-           * TODO: add Google auth
-           */}
-          {/* <AppButton
+          <AppButton
             icon="google"
             mode="outlined"
             style={commonStyles.authFormComponentMargin}
-            disabled={!request}
-            onPress={handleSignInWithGoogle}
+            loading={isSigningIn}
+            disabled={!ready || isSigningIn}
+            onPress={signInWithGoogle}
           >
             Continue with Google
-          </AppButton> */}
+          </AppButton>
           <AppButton
             onPress={() => router.push('/(auth)/sign-up')}
             style={commonStyles.authFormComponentMargin}

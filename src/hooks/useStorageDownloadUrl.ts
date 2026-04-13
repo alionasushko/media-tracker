@@ -1,5 +1,5 @@
 import { storage } from '@services/firebase';
-import { getDownloadURL, ref } from 'firebase/storage';
+import { getDownloadURL, ref } from '@react-native-firebase/storage';
 import { useEffect, useState } from 'react';
 
 export const useStorageDownloadUrl = (pathOrUrl?: string | null) => {
