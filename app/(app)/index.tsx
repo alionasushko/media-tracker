@@ -9,7 +9,7 @@ import { useUserItems } from '@queries/media.queries';
 import { auth } from '@services/firebase';
 import { useUI } from '@stores/ui.store';
 import { router } from 'expo-router';
-import React from 'react';
+import { useMemo, useState } from 'react';
 import { FlatList, StyleSheet, View } from 'react-native';
 import { ActivityIndicator, Appbar, FAB, Searchbar, Text, useTheme } from 'react-native-paper';
 import { useDebouncedCallback } from 'use-debounce';
@@ -19,11 +19,23 @@ const Library = () => {
   const { filters, setFilters } = useUI();
   const theme = useTheme();
 
-  const [searchText, setSearchText] = React.useState(filters.q);
-  const [statusMenuVisible, setStatusMenuVisible] = React.useState(false);
-  const [typeMenuVisible, setTypeMenuVisible] = React.useState(false);
+  const [searchText, setSearchText] = useState(filters.q);
+  const [statusMenuVisible, setStatusMenuVisible] = useState(false);
+  const [typeMenuVisible, setTypeMenuVisible] = useState(false);
 
-  const { data, isLoading, isError, error } = useUserItems(uid, filters);
+  const {
+    data,
+    isLoading,
+    isError,
+    error,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useUserItems(uid, filters);
+
+  const items = useMemo(() => data?.pages.flatMap((p) => p.items) ?? [], [data]);
+
+  const [hasScrolled, setHasScrolled] = useState(false);
 
   const handleOpenSettings = () => router.push('/(app)/settings');
   const handleAddItem = () => router.push('/(app)/item/add');
@@ -80,12 +92,9 @@ const Library = () => {
               onSelect={handleSelectTypeFilter}
             />
           </View>
-          <SortMenu />
+          <SortMenu disabled={!!filters.q} />
         </View>
       </View>
-      {/**
-       * TODO: add loading items on scroll
-       */}
       {isLoading ? (
         <ActivityIndicator style={styles.activityIndicator} />
       ) : isError ? (
@@ -94,12 +103,20 @@ const Library = () => {
         </Text>
       ) : (
         <FlatList
-          data={data || []}
+          data={items}
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.listContainer}
           renderItem={({ item }) => (
             <MediaCard item={item} onPress={() => handleOpenItem(item.id)} />
           )}
+          onScrollBeginDrag={() => setHasScrolled(true)}
+          onEndReached={() => {
+            if (hasScrolled && hasNextPage && !isFetchingNextPage) fetchNextPage();
+          }}
+          onEndReachedThreshold={0.5}
+          ListFooterComponent={
+            isFetchingNextPage ? <ActivityIndicator style={styles.footerIndicator} /> : null
+          }
           ListEmptyComponent={
             <Text variant="bodyLarge" style={styles.listEmptyMessage}>
               No media found
@@ -123,6 +140,7 @@ const styles = StyleSheet.create({
   },
   filterContainer: { display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 8 },
   activityIndicator: { marginTop: 24 },
+  footerIndicator: { marginVertical: 16 },
   btnAdd: { position: 'absolute', right: 24, bottom: 24 },
   listEmptyMessage: { textAlign: 'center' },
   errorMessage: { marginInline: 16 },

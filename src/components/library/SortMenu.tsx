@@ -9,9 +9,14 @@ const sortOptions: { key: SortKey; label: string }[] = [
   { key: 'rating', label: 'Rating' },
 ];
 
-const SortMenu = () => {
+type Props = { disabled?: boolean };
+
+const SortMenu = ({ disabled = false }: Props) => {
   const { filters, setFilters } = useUI();
   const [menuVisible, setMenuVisible] = useState(false);
+
+  const effectiveKey: SortKey = disabled ? 'title' : filters.sort.key;
+  const effectiveOrder = disabled ? 'asc' : filters.sort.order;
 
   const toggleOrder = () => {
     setFilters({
@@ -29,10 +34,11 @@ const SortMenu = () => {
       anchor={
         <Button
           mode="text"
-          icon={filters.sort.order === 'asc' ? 'arrow-up' : 'arrow-down'}
+          icon={effectiveOrder === 'asc' ? 'arrow-up' : 'arrow-down'}
           onPress={() => setMenuVisible(true)}
+          disabled={disabled}
         >
-          {sortOptions.find((o) => o.key === filters.sort.key)?.label}
+          {sortOptions.find((o) => o.key === effectiveKey)?.label}
         </Button>
       }
     >

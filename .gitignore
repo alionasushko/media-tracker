@@ -42,5 +42,9 @@ yarn-error.*
 GoogleService-Info.plist
 google-services.json
 
+# Firebase emulator
+*-debug.log
+.emulator-data/
+
 # typescript
 *.tsbuildinfo

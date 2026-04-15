@@ -1,7 +1,17 @@
-import { getAuth } from '@react-native-firebase/auth';
-import { getFirestore } from '@react-native-firebase/firestore';
-import { getStorage } from '@react-native-firebase/storage';
+import { connectAuthEmulator, getAuth } from '@react-native-firebase/auth';
+import { connectFirestoreEmulator, getFirestore } from '@react-native-firebase/firestore';
+import { connectStorageEmulator, getStorage } from '@react-native-firebase/storage';
+import { Platform } from 'react-native';
+
+const EMULATOR_HOST = Platform.OS === 'android' ? '10.0.2.2' : 'localhost';
+const USE_EMULATOR = __DEV__;
 
 export const auth = getAuth();
 export const db = getFirestore();
 export const storage = getStorage();
+
+if (USE_EMULATOR) {
+  connectAuthEmulator(auth, `http://${EMULATOR_HOST}:9099`);
+  connectFirestoreEmulator(db, EMULATOR_HOST, 8080);
+  connectStorageEmulator(storage, EMULATOR_HOST, 9199);
+}
