@@ -1,4 +1,4 @@
-import AppButton from '@/components/ui/AppButton';
+import AppButton from '@/shared/components/ui/AppButton';
 import { Link, useRouter } from 'expo-router';
 import { StyleSheet, View } from 'react-native';
 import { Icon, Text } from 'react-native-paper';

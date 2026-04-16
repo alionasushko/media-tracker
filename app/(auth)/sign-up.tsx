@@ -1,35 +1,17 @@
-import AppButton from '@/components/ui/AppButton';
-import { commonStyles } from '@/styles/common';
-import { showErrorToast } from '@/utils/helpers/toast';
-import FormTextInput from '@components/form/FormTextInput';
-import Logo from '@components/ui/Logo';
+import AppButton from '@/shared/components/ui/AppButton';
+import { commonStyles } from '@/shared/styles/common';
+import { showErrorToast } from '@/shared/utils/toast';
+import FormTextInput from '@/shared/components/form/FormTextInput';
+import Logo from '@/shared/components/ui/Logo';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useGoogleSignIn } from '@hooks/useGoogleSignIn';
-import { auth } from '@services/firebase';
+import { useGoogleSignIn } from '@/features/auth/hooks/useGoogleSignIn';
+import { SignUpSchema, type SignUpValues } from '@/features/auth/schema';
+import { auth } from '@/shared/services/firebase';
 import { router } from 'expo-router';
 import { createUserWithEmailAndPassword, updateProfile } from '@react-native-firebase/auth';
 import { useForm } from 'react-hook-form';
 import { View } from 'react-native';
 import { Card, Text, useTheme } from 'react-native-paper';
-import { z } from 'zod';
-
-const schema = z.object({
-  name: z.string().min(2, 'Name is required'),
-  email: z
-    .string()
-    .trim()
-    .pipe(z.email({ message: 'Enter a valid email' })),
-  password: z
-    .string()
-    .min(8, 'At least 8 characters')
-    .max(72, 'Too long (max 72)')
-    .refine((v) => /[a-z]/.test(v), 'Add a lowercase letter')
-    .refine((v) => /[A-Z]/.test(v), 'Add an uppercase letter')
-    .refine((v) => /\d/.test(v), 'Add a number')
-    .refine((v) => /[!"#$%&'()*+,-./:;<=>?@[\\\]^_`{|}~]/.test(v), 'Add a symbol'),
-});
-
-type FormValues = z.infer<typeof schema>;
 
 const SignUp = () => {
   const theme = useTheme();
@@ -38,14 +20,14 @@ const SignUp = () => {
     control,
     handleSubmit,
     formState: { isSubmitting },
-  } = useForm<FormValues>({
-    resolver: zodResolver(schema),
+  } = useForm<SignUpValues>({
+    resolver: zodResolver(SignUpSchema),
     defaultValues: { name: '', email: '', password: '' },
   });
 
   const { signInWithGoogle, isSigningIn, ready } = useGoogleSignIn();
 
-  const handleSignUp = async ({ name, email, password }: FormValues) => {
+  const handleSignUp = async ({ name, email, password }: SignUpValues) => {
     try {
       const userCred = await createUserWithEmailAndPassword(auth, email.trim(), password);
       await updateProfile(userCred.user, { displayName: name });

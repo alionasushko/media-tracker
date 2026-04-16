@@ -1,27 +1,17 @@
-import AppButton from '@/components/ui/AppButton';
-import { commonStyles } from '@/styles/common';
-import { showErrorToast } from '@/utils/helpers/toast';
-import FormTextInput from '@components/form/FormTextInput';
-import Logo from '@components/ui/Logo';
+import AppButton from '@/shared/components/ui/AppButton';
+import { commonStyles } from '@/shared/styles/common';
+import { showErrorToast } from '@/shared/utils/toast';
+import FormTextInput from '@/shared/components/form/FormTextInput';
+import Logo from '@/shared/components/ui/Logo';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useGoogleSignIn } from '@hooks/useGoogleSignIn';
-import { auth } from '@services/firebase';
+import { useGoogleSignIn } from '@/features/auth/hooks/useGoogleSignIn';
+import { SignInSchema, type SignInValues } from '@/features/auth/schema';
+import { auth } from '@/shared/services/firebase';
 import { router } from 'expo-router';
 import { signInWithEmailAndPassword } from '@react-native-firebase/auth';
 import { useForm } from 'react-hook-form';
 import { View } from 'react-native';
 import { Card, Text, useTheme } from 'react-native-paper';
-import { z } from 'zod';
-
-const schema = z.object({
-  email: z
-    .string()
-    .trim()
-    .pipe(z.email({ message: 'Enter a valid email' })),
-  password: z.string(),
-});
-
-type FormValues = z.infer<typeof schema>;
 
 const SignIn = () => {
   const theme = useTheme();
@@ -30,14 +20,14 @@ const SignIn = () => {
     control,
     handleSubmit,
     formState: { isSubmitting },
-  } = useForm<FormValues>({
-    resolver: zodResolver(schema),
+  } = useForm<SignInValues>({
+    resolver: zodResolver(SignInSchema),
     defaultValues: { email: '', password: '' },
   });
 
   const { signInWithGoogle, isSigningIn, ready } = useGoogleSignIn();
 
-  const handleSignIn = async ({ email, password }: FormValues) => {
+  const handleSignIn = async ({ email, password }: SignInValues) => {
     try {
       await signInWithEmailAndPassword(auth, email.trim(), password);
       router.replace('/');

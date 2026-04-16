@@ -1,7 +1,6 @@
 {
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
-    "baseUrl": ".",
     "strict": true,
     "target": "esnext",
     "module": "esnext",
@@ -9,17 +8,7 @@
     "jsx": "react-jsx",
     "skipLibCheck": true,
     "paths": {
-      "@/*": ["src/*"],
-      "@app/*": ["app/*"],
-      "@components/*": ["src/components/*"],
-      "@features/*": ["src/features/*"],
-      "@hooks/*": ["src/hooks/*"],
-      "@services/*": ["src/services/*"],
-      "@queries/*": ["src/queries/*"],
-      "@stores/*": ["src/stores/*"],
-      "@types/*": ["src/types/*"],
-      "@theme/*": ["src/theme/*"],
-      "@assets/*": ["assets/*"],
+      "@/*": ["./src/*"],
       "@firebase/auth": ["./node_modules/firebase/node_modules/@firebase/auth/dist/index.rn.d.ts"]
     }
   },

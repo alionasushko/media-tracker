@@ -1,7 +1,7 @@
-import AppButton from '@/components/ui/AppButton';
-import { commonStyles } from '@/styles/common';
-import { auth } from '@services/firebase';
-import { useUI } from '@stores/ui.store';
+import AppButton from '@/shared/components/ui/AppButton';
+import { commonStyles } from '@/shared/styles/common';
+import { auth } from '@/shared/services/firebase';
+import { useUI, type ThemePref } from '@/stores/ui.store';
 import { router } from 'expo-router';
 import { signOut } from '@react-native-firebase/auth';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
@@ -21,7 +21,7 @@ const Settings = () => {
     router.replace('/(auth)/sign-in');
   };
   const handleGoBack = () => router.back();
-  const handleChangeTheme = (v: any) => setTheme(v);
+  const handleChangeTheme = (v: string) => setTheme(v as ThemePref);
 
   return (
     <View style={[commonStyles.container, { backgroundColor: paperTheme.colors.background }]}>
@@ -73,10 +73,7 @@ const Settings = () => {
 
 const styles = StyleSheet.create({
   scrollView: { padding: 16, gap: 24 },
-  description: { textAlign: 'center' },
-  btnContainer: { flexDirection: 'row', gap: 8, marginTop: 12 },
   cardTitleWrapper: {
-    display: 'flex',
     flexDirection: 'row',
     gap: 8,
     paddingTop: 16,

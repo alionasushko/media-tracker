@@ -1,7 +1,7 @@
 import { useUI } from '@/stores/ui.store';
-import { darkTheme, lightTheme } from '@/theme';
-import { useToastConfig } from '@/theme/toastConfig';
-import { showErrorToast } from '@/utils/helpers/toast';
+import { darkTheme, lightTheme } from '@/shared/theme';
+import { useToastConfig } from '@/shared/hooks/useToastConfig';
+import { showErrorToast } from '@/shared/utils/toast';
 import { MutationCache, QueryCache, QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Slot } from 'expo-router';
 import { Provider as PaperProvider } from 'react-native-paper';

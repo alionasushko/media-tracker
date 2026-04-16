@@ -1,13 +1,13 @@
-import FilterMenu from '@/components/library/FilterMenu';
-import MediaCard from '@/components/library/MediaCard';
-import SortMenu from '@/components/library/SortMenu';
-import { commonStyles } from '@/styles/common';
-import { StatusFilter, TypeFilter } from '@/types/media';
-import { statusFilters, typeFilters } from '@/utils/constants/library';
-import { getErrorMessage } from '@/utils/helpers/toast';
-import { useUserItems } from '@queries/media.queries';
-import { auth } from '@services/firebase';
-import { useUI } from '@stores/ui.store';
+import FilterMenu from '@/features/media/components/FilterMenu';
+import MediaCard from '@/features/media/components/MediaCard';
+import SortMenu from '@/features/media/components/SortMenu';
+import { commonStyles } from '@/shared/styles/common';
+import { StatusFilter, TypeFilter } from '@/features/media/types';
+import { statusFilters, typeFilters } from '@/features/media/constants';
+import { getErrorMessage } from '@/shared/utils/toast';
+import { useCurrentUserId } from '@/features/auth/hooks/useCurrentUserId';
+import { useUserItems } from '@/features/media/queries';
+import { useUI } from '@/stores/ui.store';
 import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { FlatList, StyleSheet, View } from 'react-native';
@@ -15,7 +15,7 @@ import { ActivityIndicator, Appbar, FAB, Searchbar, Text, useTheme } from 'react
 import { useDebouncedCallback } from 'use-debounce';
 
 const Library = () => {
-  const uid = auth.currentUser?.uid!;
+  const uid = useCurrentUserId();
   const { filters, setFilters } = useUI();
   const theme = useTheme();
 
@@ -31,7 +31,7 @@ const Library = () => {
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
-  } = useUserItems(uid, filters);
+  } = useUserItems(uid ?? '', filters);
 
   const items = useMemo(() => data?.pages.flatMap((p) => p.items) ?? [], [data]);
 
@@ -124,7 +124,12 @@ const Library = () => {
           }
         />
       )}
-      <FAB icon="plus" style={styles.btnAdd} onPress={handleAddItem} />
+      <FAB
+        icon="plus"
+        style={styles.btnAdd}
+        onPress={handleAddItem}
+        accessibilityLabel="Add new media item"
+      />
     </View>
   );
 };

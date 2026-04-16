@@ -1,4 +1,4 @@
-import { useAuthUser } from '@hooks/useAuthUser';
+import { useAuthUser } from '@/features/auth/hooks/useAuthUser';
 import { Redirect, Stack } from 'expo-router';
 
 const AppLayout = () => {

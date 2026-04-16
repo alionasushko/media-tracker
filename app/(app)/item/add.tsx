@@ -1,27 +1,29 @@
-import AppButton from '@/components/ui/AppButton';
-import { commonStyles } from '@/styles/common';
-import { AddItemSchema, statusButtons, typeButtons } from '@/utils/constants/add-media';
-import { showErrorToast } from '@/utils/helpers/toast';
-import FormTextInput from '@components/form/FormTextInput';
-import CoverUploader from '@components/media/CoverUploader';
+import AppButton from '@/shared/components/ui/AppButton';
+import { commonStyles } from '@/shared/styles/common';
+import { statusButtons, typeButtons } from '@/features/media/constants';
+import { AddItemSchema } from '@/features/media/schema';
+import { showErrorToast } from '@/shared/utils/toast';
+import FormSegmentedButtons from '@/shared/components/form/FormSegmentedButtons';
+import FormTextInput from '@/shared/components/form/FormTextInput';
+import CoverUploader from '@/features/media/components/CoverUploader';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useCreateItem, useUpdateItem } from '@queries/media.queries';
-import { auth } from '@services/firebase';
-import { uploadCoverForItem } from '@services/storage';
+import { useCurrentUserId } from '@/features/auth/hooks/useCurrentUserId';
+import { useCreateItem, useUpdateItem } from '@/features/media/queries';
+import { uploadCoverForItem } from '@/shared/services/storage';
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { Controller, useForm } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native';
-import { Appbar, SegmentedButtons, Text, useTheme } from 'react-native-paper';
+import { Appbar, Text, useTheme } from 'react-native-paper';
 import { z } from 'zod';
 
 type FormValues = z.infer<typeof AddItemSchema>;
 
 const AddItem = () => {
   const theme = useTheme();
-  const ownerId = auth.currentUser?.uid!;
+  const ownerId = useCurrentUserId();
   const create = useCreateItem();
-  const update = useUpdateItem(ownerId);
+  const update = useUpdateItem(ownerId ?? '');
   const [coverUri, setCoverUri] = useState<string | null>(null);
 
   const {
@@ -31,10 +33,11 @@ const AddItem = () => {
   } = useForm<FormValues>({
     resolver: zodResolver(AddItemSchema),
     defaultValues: { title: '', notes: '', type: 'movie', status: 'plan' },
-    mode: 'onChange',
+    mode: 'onBlur',
   });
 
   const onSubmit = async ({ title, notes, type, status }: FormValues) => {
+    if (!ownerId) return;
     const created = await create.mutateAsync({
       ownerId,
       title: title.trim(),
@@ -103,33 +106,11 @@ const AddItem = () => {
             </View>
             <View style={styles.gap12}>
               <Text variant="titleMedium">Type</Text>
-              <Controller
-                control={control}
-                name="type"
-                render={({ field: { value, onChange } }) => (
-                  <SegmentedButtons
-                    value={value}
-                    onValueChange={(v) => onChange(v as FormValues['type'])}
-                    buttons={typeButtons}
-                    density="regular"
-                  />
-                )}
-              />
+              <FormSegmentedButtons control={control} name="type" buttons={typeButtons} />
             </View>
             <View style={styles.gap12}>
               <Text variant="titleMedium">Status</Text>
-              <Controller
-                control={control}
-                name="status"
-                render={({ field: { value, onChange } }) => (
-                  <SegmentedButtons
-                    value={value}
-                    onValueChange={(v) => onChange(v as FormValues['status'])}
-                    buttons={statusButtons}
-                    density="regular"
-                  />
-                )}
-              />
+              <FormSegmentedButtons control={control} name="status" buttons={statusButtons} />
             </View>
             <AppButton
               mode="contained"

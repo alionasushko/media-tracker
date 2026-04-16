@@ -1,21 +1,21 @@
-import FormTextInput from '@/components/form/FormTextInput';
-import AppButton from '@/components/ui/AppButton';
-import Rating from '@/components/ui/Rating';
-import { commonStyles } from '@/styles/common';
-import { AddItemSchema } from '@/utils/constants/add-media';
-import { statuses } from '@/utils/constants/library';
-import { showErrorToast } from '@/utils/helpers/toast';
-import CoverUploader from '@components/media/CoverUploader';
+import FormTextInput from '@/shared/components/form/FormTextInput';
+import AppButton from '@/shared/components/ui/AppButton';
+import Rating from '@/shared/components/ui/Rating';
+import { commonStyles } from '@/shared/styles/common';
+import { AddItemSchema } from '@/features/media/schema';
+import { statuses } from '@/features/media/constants';
+import CoverUploader from '@/features/media/components/CoverUploader';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useDeleteItem, useUpdateItemOptimistic, useUserItem } from '@queries/media.queries';
-import { auth } from '@services/firebase';
-import { deleteCoverByUrl, uploadCoverForItem } from '@services/storage';
+import { useCoverManager } from '@/features/media/hooks/useCoverManager';
+import { useCurrentUserId } from '@/features/auth/hooks/useCurrentUserId';
+import { useDeleteItem, useUpdateItemOptimistic, useUserItem } from '@/features/media/queries';
+import { deleteCoverByUrl } from '@/shared/services/storage';
 import { router, useLocalSearchParams } from 'expo-router';
-import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { Appbar, Card, Chip, TextInput, useTheme } from 'react-native-paper';
 import { z } from 'zod';
+import type { Status } from '@/features/media/types';
 
 type FormValues = Pick<z.infer<typeof AddItemSchema>, 'notes'>;
 
@@ -23,10 +23,14 @@ const ItemDetail = () => {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { data } = useUserItem(id);
   const theme = useTheme();
-  const ownerId = auth.currentUser?.uid!;
+  const ownerId = useCurrentUserId() ?? '';
   const update = useUpdateItemOptimistic(ownerId);
   const del = useDeleteItem(ownerId);
-  const [isUploadingCover, setIsUploadingCover] = useState(false);
+  const { uploadCover, deleteCover, isUploading } = useCoverManager({
+    itemId: id,
+    ownerId,
+    currentCoverUrl: data?.coverUrl,
+  });
 
   const {
     control,
@@ -35,7 +39,7 @@ const ItemDetail = () => {
   } = useForm<FormValues>({
     resolver: zodResolver(AddItemSchema.pick({ notes: true })),
     values: { notes: data?.notes ?? '' },
-    mode: 'onChange',
+    mode: 'onBlur',
   });
 
   if (!data) return null;
@@ -44,7 +48,7 @@ const ItemDetail = () => {
     await update.mutateAsync({ id, patch: { notes: notes.trim() } });
   };
 
-  const handleMarkStatus = async (status: 'plan' | 'progress' | 'done' | 'dropped') => {
+  const handleMarkStatus = async (status: Status) => {
     await update.mutateAsync({ id, patch: { status } });
   };
   const handleChangeRating = async (v: number) => {
@@ -53,59 +57,21 @@ const ItemDetail = () => {
   const handleClearRating = () => update.mutate({ id, patch: { rating: 0 } });
 
   const handleRemove = async () => {
-    try {
-      if (data?.coverUrl) await deleteCoverByUrl(data.coverUrl);
-    } catch (e) {
-      console.error(e);
+    if (data.coverUrl) {
+      try {
+        await deleteCoverByUrl(data.coverUrl);
+      } catch (e) {
+        console.error('[ItemDetail] failed to delete cover on remove:', e);
+      }
     }
     await del.mutateAsync(id);
     router.back();
   };
   const handleGoBack = () => router.back();
 
-  const handleDeleteCover = async () => {
-    setIsUploadingCover(true);
-    try {
-      if (!data?.coverUrl) return;
-      try {
-        try {
-          await deleteCoverByUrl(data.coverUrl);
-        } catch (e) {
-          console.error(e);
-        }
-        await update.mutateAsync({ id, patch: { coverUrl: null } });
-      } catch (e) {
-        showErrorToast(e, 'Failed to delete cover');
-      }
-    } finally {
-      setIsUploadingCover(false);
-    }
-  };
-
-  const handleUploadCover = async (uri: string) => {
-    setIsUploadingCover(true);
-    try {
-      try {
-        const newUrl = await uploadCoverForItem(ownerId, id, uri);
-        await update.mutateAsync({ id, patch: { coverUrl: newUrl } });
-        if (data?.coverUrl) {
-          try {
-            await deleteCoverByUrl(data.coverUrl);
-          } catch (e) {
-            console.error(e);
-          }
-        }
-      } catch (e) {
-        showErrorToast(e, 'Failed to change cover');
-      }
-    } finally {
-      setIsUploadingCover(false);
-    }
-  };
-
   const handleCoverChange = (uri: string | null) => {
-    if (uri === null) handleDeleteCover();
-    else handleUploadCover(uri);
+    if (uri === null) deleteCover();
+    else uploadCover(uri);
   };
 
   return (
@@ -120,7 +86,7 @@ const ItemDetail = () => {
         <Card>
           <CoverUploader
             value={data.coverUrl ?? null}
-            loading={isUploadingCover}
+            loading={isUploading}
             onChange={handleCoverChange}
           />
           <Card.Title title={data.title} subtitle={data.type.toUpperCase()} />
