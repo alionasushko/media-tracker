@@ -1,15 +1,15 @@
 import AppButton from '@/shared/components/ui/AppButton';
 import { commonStyles } from '@/shared/styles/common';
 import { statusButtons, typeButtons } from '@/features/media/constants';
-import { AddItemSchema } from '@/features/media/schema';
+import { AddMediaSchema } from '@/features/media/schema';
 import { showErrorToast } from '@/shared/utils/toast';
 import FormSegmentedButtons from '@/shared/components/form/FormSegmentedButtons';
 import FormTextInput from '@/shared/components/form/FormTextInput';
 import CoverUploader from '@/features/media/components/CoverUploader';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useCurrentUserId } from '@/features/auth/hooks/useCurrentUserId';
-import { useCreateItem, useUpdateItem } from '@/features/media/queries';
-import { uploadCoverForItem } from '@/shared/services/storage';
+import { useCreateMedia, useUpdateMedia } from '@/features/media/queries';
+import { uploadCoverForMedia } from '@/shared/services/storage';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -17,13 +17,13 @@ import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 're
 import { Appbar, Text, useTheme } from 'react-native-paper';
 import { z } from 'zod';
 
-type FormValues = z.infer<typeof AddItemSchema>;
+type FormValues = z.infer<typeof AddMediaSchema>;
 
 const AddItem = () => {
   const theme = useTheme();
   const ownerId = useCurrentUserId();
-  const create = useCreateItem();
-  const update = useUpdateItem(ownerId ?? '');
+  const create = useCreateMedia();
+  const update = useUpdateMedia(ownerId ?? '');
   const [coverUri, setCoverUri] = useState<string | null>(null);
 
   const {
@@ -31,7 +31,7 @@ const AddItem = () => {
     handleSubmit,
     formState: { isSubmitting, isValid },
   } = useForm<FormValues>({
-    resolver: zodResolver(AddItemSchema),
+    resolver: zodResolver(AddMediaSchema),
     defaultValues: { title: '', notes: '', type: 'movie', status: 'plan' },
     mode: 'onBlur',
   });
@@ -48,7 +48,7 @@ const AddItem = () => {
 
     if (coverUri && created?.id) {
       try {
-        const url = await uploadCoverForItem(ownerId, created.id, coverUri);
+        const url = await uploadCoverForMedia(ownerId, created.id, coverUri);
         await update.mutateAsync({ id: created.id, patch: { coverUrl: url } });
       } catch (e) {
         showErrorToast(e, 'Cover upload failed');

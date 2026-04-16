@@ -6,7 +6,7 @@ import { StatusFilter, TypeFilter } from '@/features/media/types';
 import { statusFilters, typeFilters } from '@/features/media/constants';
 import { getErrorMessage } from '@/shared/utils/toast';
 import { useCurrentUserId } from '@/features/auth/hooks/useCurrentUserId';
-import { useUserItems } from '@/features/media/queries';
+import { useUserMedia } from '@/features/media/queries';
 import { useUI } from '@/stores/ui.store';
 import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
@@ -31,9 +31,9 @@ const Library = () => {
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
-  } = useUserItems(uid ?? '', filters);
+  } = useUserMedia(uid ?? '', filters);
 
-  const items = useMemo(() => data?.pages.flatMap((p) => p.items) ?? [], [data]);
+  const items = useMemo(() => data?.pages.flatMap((p) => p.media) ?? [], [data]);
 
   const [hasScrolled, setHasScrolled] = useState(false);
 

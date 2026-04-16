@@ -2,13 +2,13 @@ import FormTextInput from '@/shared/components/form/FormTextInput';
 import AppButton from '@/shared/components/ui/AppButton';
 import Rating from '@/shared/components/ui/Rating';
 import { commonStyles } from '@/shared/styles/common';
-import { AddItemSchema } from '@/features/media/schema';
+import { AddMediaSchema } from '@/features/media/schema';
 import { statuses } from '@/features/media/constants';
 import CoverUploader from '@/features/media/components/CoverUploader';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useCoverManager } from '@/features/media/hooks/useCoverManager';
 import { useCurrentUserId } from '@/features/auth/hooks/useCurrentUserId';
-import { useDeleteItem, useUpdateItemOptimistic, useUserItem } from '@/features/media/queries';
+import { useDeleteMedia, useUpdateMediaOptimistic, useUserMediaEntry } from '@/features/media/queries';
 import { deleteCoverByUrl } from '@/shared/services/storage';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useForm } from 'react-hook-form';
@@ -17,15 +17,15 @@ import { Appbar, Card, Chip, TextInput, useTheme } from 'react-native-paper';
 import { z } from 'zod';
 import type { Status } from '@/features/media/types';
 
-type FormValues = Pick<z.infer<typeof AddItemSchema>, 'notes'>;
+type FormValues = Pick<z.infer<typeof AddMediaSchema>, 'notes'>;
 
 const ItemDetail = () => {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { data } = useUserItem(id);
+  const { data } = useUserMediaEntry(id);
   const theme = useTheme();
   const ownerId = useCurrentUserId() ?? '';
-  const update = useUpdateItemOptimistic(ownerId);
-  const del = useDeleteItem(ownerId);
+  const update = useUpdateMediaOptimistic(ownerId);
+  const del = useDeleteMedia(ownerId);
   const { uploadCover, deleteCover, isUploading } = useCoverManager({
     itemId: id,
     ownerId,
@@ -37,7 +37,7 @@ const ItemDetail = () => {
     handleSubmit,
     formState: { isSubmitting, isValid },
   } = useForm<FormValues>({
-    resolver: zodResolver(AddItemSchema.pick({ notes: true })),
+    resolver: zodResolver(AddMediaSchema.pick({ notes: true })),
     values: { notes: data?.notes ?? '' },
     mode: 'onBlur',
   });

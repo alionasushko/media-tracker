@@ -6,7 +6,7 @@ export type Status = (typeof statuses)[number];
 export type StatusFilter = 'all' | Status;
 export type TypeFilter = 'all' | MediaType;
 
-export interface UserItem {
+export interface UserMedia {
   id: string;
   ownerId: string;
   mediaId?: string;

@@ -69,13 +69,13 @@ const processCoverImage = async (
   }
 };
 
-export const uploadCoverForItem = async (ownerId: string, itemId: string, uri: string) => {
+export const uploadCoverForMedia = async (ownerId: string, mediaId: string, uri: string) => {
   const processed = await processCoverImage(uri);
   const ct = processed.contentType || 'image/jpeg';
   const ext = processed.ext || 'jpg';
 
   const version = Date.now();
-  const path = `covers/${ownerId}/${itemId}_${version}.${ext}`;
+  const path = `covers/${ownerId}/${mediaId}_${version}.${ext}`;
   const objectRef = ref(storage, path);
   await putFile(objectRef, processed.uri, { contentType: ct });
 

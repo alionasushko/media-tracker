@@ -5,7 +5,7 @@
  *   npx tsx scripts/seed-emulator.ts
  *
  * Creates a test user (test@example.com / password123) in the Auth emulator
- * and populates the Firestore `items` collection with sample media.
+ * and populates the Firestore `media` collection with sample data.
  *
  * Requires emulators running (firebase emulators:start).
  */
@@ -144,7 +144,7 @@ async function seed() {
     const doc = toFirestoreDoc(item, ownerId, createdAt);
 
     const res = await fetch(
-      `${FIRESTORE_URL}/v1/projects/${projectId}/databases/(default)/documents/items`,
+      `${FIRESTORE_URL}/v1/projects/${projectId}/databases/(default)/documents/media`,
       {
         method: 'POST',
         headers: {

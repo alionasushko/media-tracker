@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { mediaTypes, statuses } from './constants';
 
-export const AddItemSchema = z.object({
+export const AddMediaSchema = z.object({
   title: z
     .string()
     .trim()

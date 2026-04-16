@@ -4,7 +4,7 @@ import { connectStorageEmulator, getStorage } from '@react-native-firebase/stora
 import { Platform } from 'react-native';
 
 const EMULATOR_HOST = Platform.OS === 'android' ? '10.0.2.2' : 'localhost';
-const USE_EMULATOR = __DEV__;
+const USE_EMULATOR = __DEV__ && process.env.EXPO_PUBLIC_USE_EMULATOR === 'true';
 
 export const auth = getAuth();
 export const db = getFirestore();

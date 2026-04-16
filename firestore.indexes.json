@@ -1,7 +1,7 @@
 {
   "indexes": [
     {
-      "collectionGroup": "items",
+      "collectionGroup": "media",
       "queryScope": "COLLECTION",
       "fields": [
         { "fieldPath": "ownerId", "order": "ASCENDING" },
@@ -10,7 +10,7 @@
       "density": "SPARSE_ALL"
     },
     {
-      "collectionGroup": "items",
+      "collectionGroup": "media",
       "queryScope": "COLLECTION",
       "fields": [
         { "fieldPath": "ownerId", "order": "ASCENDING" },
@@ -20,7 +20,7 @@
     },
 
     {
-      "collectionGroup": "items",
+      "collectionGroup": "media",
       "queryScope": "COLLECTION",
       "fields": [
         { "fieldPath": "ownerId", "order": "ASCENDING" },
@@ -30,7 +30,7 @@
       "density": "SPARSE_ALL"
     },
     {
-      "collectionGroup": "items",
+      "collectionGroup": "media",
       "queryScope": "COLLECTION",
       "fields": [
         { "fieldPath": "ownerId", "order": "ASCENDING" },
@@ -41,7 +41,7 @@
     },
 
     {
-      "collectionGroup": "items",
+      "collectionGroup": "media",
       "queryScope": "COLLECTION",
       "fields": [
         { "fieldPath": "ownerId", "order": "ASCENDING" },
@@ -51,7 +51,7 @@
       "density": "SPARSE_ALL"
     },
     {
-      "collectionGroup": "items",
+      "collectionGroup": "media",
       "queryScope": "COLLECTION",
       "fields": [
         { "fieldPath": "ownerId", "order": "ASCENDING" },
@@ -62,7 +62,7 @@
     },
 
     {
-      "collectionGroup": "items",
+      "collectionGroup": "media",
       "queryScope": "COLLECTION",
       "fields": [
         { "fieldPath": "ownerId", "order": "ASCENDING" },
@@ -73,7 +73,7 @@
       "density": "SPARSE_ALL"
     },
     {
-      "collectionGroup": "items",
+      "collectionGroup": "media",
       "queryScope": "COLLECTION",
       "fields": [
         { "fieldPath": "ownerId", "order": "ASCENDING" },
@@ -84,7 +84,7 @@
       "density": "SPARSE_ALL"
     },
     {
-      "collectionGroup": "items",
+      "collectionGroup": "media",
       "queryScope": "COLLECTION",
       "fields": [
         { "fieldPath": "ownerId", "order": "ASCENDING" },
@@ -93,7 +93,7 @@
       "density": "SPARSE_ALL"
     },
     {
-      "collectionGroup": "items",
+      "collectionGroup": "media",
       "queryScope": "COLLECTION",
       "fields": [
         { "fieldPath": "ownerId", "order": "ASCENDING" },
@@ -103,7 +103,7 @@
     },
 
     {
-      "collectionGroup": "items",
+      "collectionGroup": "media",
       "queryScope": "COLLECTION",
       "fields": [
         { "fieldPath": "ownerId", "order": "ASCENDING" },
@@ -113,7 +113,7 @@
       "density": "SPARSE_ALL"
     },
     {
-      "collectionGroup": "items",
+      "collectionGroup": "media",
       "queryScope": "COLLECTION",
       "fields": [
         { "fieldPath": "ownerId", "order": "ASCENDING" },
@@ -124,7 +124,7 @@
     },
 
     {
-      "collectionGroup": "items",
+      "collectionGroup": "media",
       "queryScope": "COLLECTION",
       "fields": [
         { "fieldPath": "ownerId", "order": "ASCENDING" },
@@ -134,7 +134,7 @@
       "density": "SPARSE_ALL"
     },
     {
-      "collectionGroup": "items",
+      "collectionGroup": "media",
       "queryScope": "COLLECTION",
       "fields": [
         { "fieldPath": "ownerId", "order": "ASCENDING" },
@@ -145,7 +145,7 @@
     },
 
     {
-      "collectionGroup": "items",
+      "collectionGroup": "media",
       "queryScope": "COLLECTION",
       "fields": [
         { "fieldPath": "ownerId", "order": "ASCENDING" },
@@ -156,7 +156,7 @@
       "density": "SPARSE_ALL"
     },
     {
-      "collectionGroup": "items",
+      "collectionGroup": "media",
       "queryScope": "COLLECTION",
       "fields": [
         { "fieldPath": "ownerId", "order": "ASCENDING" },
@@ -167,7 +167,7 @@
       "density": "SPARSE_ALL"
     },
     {
-      "collectionGroup": "items",
+      "collectionGroup": "media",
       "queryScope": "COLLECTION",
       "fields": [
         { "fieldPath": "ownerId", "order": "ASCENDING" },
@@ -176,7 +176,7 @@
       "density": "SPARSE_ALL"
     },
     {
-      "collectionGroup": "items",
+      "collectionGroup": "media",
       "queryScope": "COLLECTION",
       "fields": [
         { "fieldPath": "ownerId", "order": "ASCENDING" },
@@ -186,7 +186,7 @@
     },
 
     {
-      "collectionGroup": "items",
+      "collectionGroup": "media",
       "queryScope": "COLLECTION",
       "fields": [
         { "fieldPath": "ownerId", "order": "ASCENDING" },
@@ -196,7 +196,7 @@
       "density": "SPARSE_ALL"
     },
     {
-      "collectionGroup": "items",
+      "collectionGroup": "media",
       "queryScope": "COLLECTION",
       "fields": [
         { "fieldPath": "ownerId", "order": "ASCENDING" },
@@ -207,7 +207,7 @@
     },
 
     {
-      "collectionGroup": "items",
+      "collectionGroup": "media",
       "queryScope": "COLLECTION",
       "fields": [
         { "fieldPath": "ownerId", "order": "ASCENDING" },
@@ -217,7 +217,7 @@
       "density": "SPARSE_ALL"
     },
     {
-      "collectionGroup": "items",
+      "collectionGroup": "media",
       "queryScope": "COLLECTION",
       "fields": [
         { "fieldPath": "ownerId", "order": "ASCENDING" },
@@ -228,7 +228,7 @@
     },
 
     {
-      "collectionGroup": "items",
+      "collectionGroup": "media",
       "queryScope": "COLLECTION",
       "fields": [
         { "fieldPath": "ownerId", "order": "ASCENDING" },
@@ -239,7 +239,7 @@
       "density": "SPARSE_ALL"
     },
     {
-      "collectionGroup": "items",
+      "collectionGroup": "media",
       "queryScope": "COLLECTION",
       "fields": [
         { "fieldPath": "ownerId", "order": "ASCENDING" },
@@ -251,7 +251,7 @@
     },
 
     {
-      "collectionGroup": "items",
+      "collectionGroup": "media",
       "queryScope": "COLLECTION",
       "fields": [
         { "fieldPath": "ownerId", "order": "ASCENDING" },
@@ -260,7 +260,7 @@
       "density": "SPARSE_ALL"
     },
     {
-      "collectionGroup": "items",
+      "collectionGroup": "media",
       "queryScope": "COLLECTION",
       "fields": [
         { "fieldPath": "ownerId", "order": "ASCENDING" },
@@ -270,7 +270,7 @@
       "density": "SPARSE_ALL"
     },
     {
-      "collectionGroup": "items",
+      "collectionGroup": "media",
       "queryScope": "COLLECTION",
       "fields": [
         { "fieldPath": "ownerId", "order": "ASCENDING" },
@@ -280,7 +280,7 @@
       "density": "SPARSE_ALL"
     },
     {
-      "collectionGroup": "items",
+      "collectionGroup": "media",
       "queryScope": "COLLECTION",
       "fields": [
         { "fieldPath": "ownerId", "order": "ASCENDING" },
