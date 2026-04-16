@@ -5,19 +5,22 @@ export const useToastConfig = (): ToastConfig => {
   const theme = useTheme();
 
   const commonStyle = {
-    borderLeftWidth: 0,
+    borderLeftWidth: 3,
     borderRadius: theme.roundness,
-    backgroundColor: theme.colors.elevation.level2,
+    backgroundColor: theme.colors.surface,
+    borderColor: theme.colors.outlineVariant,
+    borderWidth: 1,
   };
 
   const text1Style = {
-    fontSize: theme.fonts.labelLarge.fontSize,
-    fontWeight: '600',
+    fontFamily: 'Inter-SemiBold',
+    fontSize: 14,
     color: theme.colors.onSurface,
   };
 
   const text2Style = {
-    fontSize: theme.fonts.bodyMedium.fontSize,
+    fontFamily: 'Inter-Regular',
+    fontSize: 13,
     color: theme.colors.onSurfaceVariant,
   };
 

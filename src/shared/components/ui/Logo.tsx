@@ -5,13 +5,12 @@ export type LogoVariant = 'wordmark' | 'badge';
 
 interface Props {
   variant?: LogoVariant;
-  /** 'sm' ≈ 18, 'md' ≈ 22, 'lg' ≈ 28 */
   size?: 'sm' | 'md' | 'lg' | number;
   showIcon?: boolean;
 }
 
 const sizeToPx = (s: Props['size']) =>
-  s === 'sm' ? 18 : s === 'md' ? 22 : s === 'lg' ? 28 : typeof s === 'number' ? s : 22;
+  s === 'sm' ? 16 : s === 'md' ? 20 : s === 'lg' ? 26 : typeof s === 'number' ? s : 20;
 
 const LogoTile = ({
   box,
@@ -35,14 +34,14 @@ const LogoTile = ({
       style,
     ]}
   >
-    <Icon source="play" color={tint} size={Math.round(box * 0.65)} />
+    <Icon source="play" color={tint} size={Math.round(box * 0.55)} />
   </View>
 );
 
 const Logo = ({ variant = 'wordmark', size = 'md', showIcon = false }: Props) => {
   const { colors } = useTheme();
   const fontSize = sizeToPx(size);
-  const box = fontSize + 8;
+  const box = fontSize + 10;
 
   if (variant === 'badge') {
     return <LogoTile box={box} bg={colors.primary} tint={colors.onPrimary} />;
@@ -60,7 +59,7 @@ const Logo = ({ variant = 'wordmark', size = 'md', showIcon = false }: Props) =>
       )}
       <Text style={[styles.logoTitle, { fontSize }]}>
         Media
-        <Text style={[styles.logoTitleFontBold, { color: colors.primary }]}> Tracker</Text>
+        <Text style={[styles.logoAccent, { color: colors.primary }]}> Tracker</Text>
       </Text>
     </View>
   );
@@ -68,14 +67,14 @@ const Logo = ({ variant = 'wordmark', size = 'md', showIcon = false }: Props) =>
 
 const styles = StyleSheet.create({
   logoTileWrapper: {
-    borderRadius: 12,
+    borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  logoTileMargin: { marginRight: 6 },
+  logoTileMargin: { marginRight: 8 },
   logoWordmarkWrapper: { flexDirection: 'row', alignItems: 'center' },
-  logoTitle: { fontWeight: '800', letterSpacing: 0.3 },
-  logoTitleFontBold: { fontWeight: '900' },
+  logoTitle: { fontFamily: 'Inter-SemiBold', letterSpacing: -0.3 },
+  logoAccent: { fontFamily: 'Inter-Bold', letterSpacing: -0.3 },
 });
 
 export default Logo;

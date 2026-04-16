@@ -4,6 +4,7 @@ import { useState } from 'react';
 import type { StyleProp, ViewStyle } from 'react-native';
 import { Image, StyleSheet, View } from 'react-native';
 import { ActivityIndicator, Icon, IconButton, Text, useTheme } from 'react-native-paper';
+import Animated, { FadeIn } from 'react-native-reanimated';
 import CoverSourceMenu from './CoverSourceMenu';
 
 interface CoverProps {
@@ -36,12 +37,15 @@ const Cover = ({
 
   if (!path) return null;
 
-  const borderStyle = { borderColor: theme.colors.outlineVariant };
-
   if (loading || (!isDirectUri && fetchingUrl)) {
     return (
       <View
-        style={[commonStyles.preview, styles.placeholder, styles.relative, previewStyle, borderStyle]}
+        style={[
+          commonStyles.preview,
+          styles.placeholder,
+          { backgroundColor: theme.colors.surfaceVariant },
+          previewStyle,
+        ]}
       >
         <ActivityIndicator />
       </View>
@@ -51,11 +55,18 @@ const Cover = ({
   if (!isDirectUri && error) {
     return (
       <View
-        style={[commonStyles.preview, styles.placeholder, styles.relative, previewStyle, borderStyle]}
+        style={[
+          commonStyles.preview,
+          styles.placeholder,
+          { backgroundColor: theme.colors.surfaceVariant },
+          previewStyle,
+        ]}
       >
         <View style={styles.errorRow}>
-          <Icon source="alert-circle-outline" size={20} color={theme.colors.error} />
-          <Text>Failed to load image</Text>
+          <Icon source="alert-circle-outline" size={18} color={theme.colors.error} />
+          <Text style={[styles.errorText, { color: theme.colors.onSurfaceVariant }]}>
+            Failed to load image
+          </Text>
         </View>
       </View>
     );
@@ -64,7 +75,10 @@ const Cover = ({
   if (!isDirectUri && !url) return null;
 
   return (
-    <View style={[commonStyles.preview, styles.relative, previewStyle, borderStyle]}>
+    <Animated.View
+      entering={FadeIn.duration(300)}
+      style={[commonStyles.preview, previewStyle]}
+    >
       <Image
         source={{ uri: isDirectUri ? (path as string) : (url as string) }}
         style={styles.image}
@@ -79,9 +93,10 @@ const Cover = ({
                   icon="pencil"
                   accessibilityLabel="Change cover"
                   onPress={() => setMenuVisible(true)}
-                  iconColor={theme.colors.onPrimary}
-                  containerColor={theme.colors.primary}
-                  size={24}
+                  iconColor="#FFFFFF"
+                  containerColor="rgba(0, 0, 0, 0.5)"
+                  size={18}
+                  style={styles.overlayBtn}
                 />
               }
               visible={menuVisible}
@@ -92,33 +107,35 @@ const Cover = ({
           ) : null}
           {onDeletePress ? (
             <IconButton
-              icon="delete"
+              icon="delete-outline"
               accessibilityLabel="Delete cover"
               onPress={onDeletePress}
-              iconColor={theme.colors.onPrimary}
-              containerColor={theme.colors.primary}
-              size={24}
+              iconColor="#FFFFFF"
+              containerColor="rgba(0, 0, 0, 0.5)"
+              size={18}
+              style={styles.overlayBtn}
             />
           ) : null}
         </View>
       ) : null}
-    </View>
+    </Animated.View>
   );
 };
 
 const styles = StyleSheet.create({
   image: { width: '100%', height: '100%' },
   placeholder: { alignItems: 'center', justifyContent: 'center' },
-  relative: { position: 'relative' },
-  errorRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  errorRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  errorText: { fontFamily: 'Inter-Regular', fontSize: 13 },
   overlayActions: {
     position: 'absolute',
-    bottom: 8,
-    right: 8,
+    bottom: 10,
+    right: 10,
     flexDirection: 'row',
-    gap: 8,
+    gap: 4,
     alignItems: 'center',
   },
+  overlayBtn: { borderRadius: 10 },
 });
 
 export default Cover;

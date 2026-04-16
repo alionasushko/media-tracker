@@ -1,37 +1,34 @@
+import { useCurrentUserId } from '@/features/auth/hooks/useCurrentUserId';
 import FilterMenu from '@/features/media/components/FilterMenu';
 import MediaCard from '@/features/media/components/MediaCard';
 import SortMenu from '@/features/media/components/SortMenu';
-import { commonStyles } from '@/shared/styles/common';
-import { StatusFilter, TypeFilter } from '@/features/media/types';
 import { statusFilters, typeFilters } from '@/features/media/constants';
-import { getErrorMessage } from '@/shared/utils/toast';
-import { useCurrentUserId } from '@/features/auth/hooks/useCurrentUserId';
 import { useUserMedia } from '@/features/media/queries';
+import { StatusFilter, TypeFilter, UserMedia } from '@/features/media/types';
+import AnimatedScreen from '@/shared/components/ui/AnimatedScreen';
+import { commonStyles } from '@/shared/styles/common';
+import { getErrorMessage } from '@/shared/utils/toast';
 import { useUI } from '@/stores/ui.store';
 import { router } from 'expo-router';
-import { useMemo, useState } from 'react';
-import { FlatList, StyleSheet, View } from 'react-native';
-import { ActivityIndicator, Appbar, FAB, Searchbar, Text, useTheme } from 'react-native-paper';
+import { useCallback, useMemo, useState } from 'react';
+import { FlatList, Pressable, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Icon, Searchbar, Text, useTheme } from 'react-native-paper';
+import Animated, { FadeInDown, ZoomIn } from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useDebouncedCallback } from 'use-debounce';
 
 const Library = () => {
   const uid = useCurrentUserId();
   const { filters, setFilters } = useUI();
   const theme = useTheme();
+  const insets = useSafeAreaInsets();
 
   const [searchText, setSearchText] = useState(filters.q);
   const [statusMenuVisible, setStatusMenuVisible] = useState(false);
   const [typeMenuVisible, setTypeMenuVisible] = useState(false);
 
-  const {
-    data,
-    isLoading,
-    isError,
-    error,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-  } = useUserMedia(uid ?? '', filters);
+  const { data, isLoading, isError, error, fetchNextPage, hasNextPage, isFetchingNextPage } =
+    useUserMedia(uid ?? '', filters);
 
   const items = useMemo(() => data?.pages.flatMap((p) => p.media) ?? [], [data]);
 
@@ -61,94 +58,159 @@ const Library = () => {
     setTypeMenuVisible(false);
   };
 
+  const renderItem = useCallback(
+    ({ item, index }: { item: UserMedia; index: number }) => (
+      <Animated.View
+        entering={FadeInDown.duration(250)
+          .delay(index * 40)
+          .springify()}
+      >
+        <MediaCard item={item} onPress={() => handleOpenItem(item.id)} />
+      </Animated.View>
+    ),
+    [],
+  );
+
   return (
-    <View style={[commonStyles.container, { backgroundColor: theme.colors.background }]}>
-      <Appbar.Header>
-        <Appbar.Content title="My Library" />
-        <Appbar.Action icon="cog" onPress={handleOpenSettings} />
-      </Appbar.Header>
-      <View style={styles.sectionContainer}>
-        <Searchbar
-          placeholder="Search your media"
-          value={searchText}
-          onChangeText={handleChangeSearchText}
-        />
-        <View style={styles.filterToolbarContainer}>
-          <View style={styles.filterContainer}>
-            <FilterMenu<StatusFilter>
-              label="Status: "
-              value={filters.status}
-              visible={statusMenuVisible}
-              options={statusFilters}
-              onChangeVisibility={(visible) => setStatusMenuVisible(visible)}
-              onSelect={handleSelectStatusFilter}
-            />
-            <FilterMenu<TypeFilter>
-              label="Type: "
-              value={filters.type}
-              visible={typeMenuVisible}
-              options={typeFilters}
-              onChangeVisibility={(visible) => setTypeMenuVisible(visible)}
-              onSelect={handleSelectTypeFilter}
-            />
-          </View>
-          <SortMenu disabled={!!filters.q} />
+    <AnimatedScreen>
+      <View style={[commonStyles.container, { backgroundColor: theme.colors.background }]}>
+        <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
+          <Text style={[styles.headerTitle, { color: theme.colors.onBackground }]}>Library</Text>
+          <Pressable onPress={handleOpenSettings} hitSlop={8}>
+            <Icon source="cog-outline" size={22} color={theme.colors.onSurfaceVariant} />
+          </Pressable>
         </View>
-      </View>
-      {isLoading ? (
-        <ActivityIndicator style={styles.activityIndicator} />
-      ) : isError ? (
-        <Text variant="bodyLarge" style={styles.errorMessage}>
-          {getErrorMessage(error)}
-        </Text>
-      ) : (
-        <FlatList
-          data={items}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.listContainer}
-          renderItem={({ item }) => (
-            <MediaCard item={item} onPress={() => handleOpenItem(item.id)} />
-          )}
-          onScrollBeginDrag={() => setHasScrolled(true)}
-          onEndReached={() => {
-            if (hasScrolled && hasNextPage && !isFetchingNextPage) fetchNextPage();
-          }}
-          onEndReachedThreshold={0.5}
-          ListFooterComponent={
-            isFetchingNextPage ? <ActivityIndicator style={styles.footerIndicator} /> : null
-          }
-          ListEmptyComponent={
-            <Text variant="bodyLarge" style={styles.listEmptyMessage}>
-              No media found
+
+        <View style={styles.toolbar}>
+          <Searchbar
+            placeholder="Search"
+            value={searchText}
+            onChangeText={handleChangeSearchText}
+            style={[styles.searchbar, { backgroundColor: theme.colors.surfaceVariant }]}
+            inputStyle={styles.searchInput}
+            elevation={0}
+            placeholderTextColor={theme.colors.onSurfaceVariant}
+          />
+          <View style={styles.filterRow}>
+            <View style={styles.filterGroup}>
+              <FilterMenu<StatusFilter>
+                label="Status"
+                value={filters.status}
+                visible={statusMenuVisible}
+                options={statusFilters}
+                onChangeVisibility={setStatusMenuVisible}
+                onSelect={handleSelectStatusFilter}
+              />
+              <FilterMenu<TypeFilter>
+                label="Type"
+                value={filters.type}
+                visible={typeMenuVisible}
+                options={typeFilters}
+                onChangeVisibility={setTypeMenuVisible}
+                onSelect={handleSelectTypeFilter}
+              />
+            </View>
+            <SortMenu disabled={!!filters.q} />
+          </View>
+        </View>
+
+        {isLoading ? (
+          <ActivityIndicator style={styles.centered} />
+        ) : isError ? (
+          <View style={styles.centered}>
+            <Text variant="bodyMedium" style={{ color: theme.colors.error }}>
+              {getErrorMessage(error)}
             </Text>
-          }
-        />
-      )}
-      <FAB
-        icon="plus"
-        style={styles.btnAdd}
-        onPress={handleAddItem}
-        accessibilityLabel="Add new media item"
-      />
-    </View>
+          </View>
+        ) : (
+          <FlatList
+            data={items}
+            keyExtractor={(item) => item.id}
+            contentContainerStyle={styles.list}
+            renderItem={renderItem}
+            onScrollBeginDrag={() => setHasScrolled(true)}
+            onEndReached={() => {
+              if (hasScrolled && hasNextPage && !isFetchingNextPage) fetchNextPage();
+            }}
+            onEndReachedThreshold={0.5}
+            ListFooterComponent={
+              isFetchingNextPage ? <ActivityIndicator style={styles.footer} /> : null
+            }
+            ListEmptyComponent={
+              <View style={styles.emptyState}>
+                <Icon source="bookshelf" size={48} color={theme.colors.outlineVariant} />
+                <Text
+                  variant="bodyLarge"
+                  style={[styles.emptyText, { color: theme.colors.onSurfaceVariant }]}
+                >
+                  No media found
+                </Text>
+              </View>
+            }
+          />
+        )}
+
+        <Animated.View
+          entering={ZoomIn.duration(250).delay(150).springify()}
+          style={[styles.fabContainer, { bottom: insets.bottom + 24 }]}
+        >
+          <Pressable
+            onPress={handleAddItem}
+            style={[styles.fab, { backgroundColor: theme.colors.primary }]}
+            accessibilityLabel="Add new media item"
+          >
+            <Icon source="plus" size={24} color={theme.colors.onPrimary} />
+          </Pressable>
+        </Animated.View>
+      </View>
+    </AnimatedScreen>
   );
 };
 
 const styles = StyleSheet.create({
-  sectionContainer: { padding: 12, gap: 12 },
-  listContainer: { padding: 12, paddingBottom: 32, gap: 12 },
-  filterToolbarContainer: {
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingBottom: 8,
+  },
+  headerTitle: {
+    fontFamily: 'Inter-Bold',
+    fontSize: 28,
+    letterSpacing: -0.5,
+  },
+  toolbar: { paddingHorizontal: 20, gap: 12, paddingBottom: 8 },
+  searchbar: {
+    borderRadius: 12,
+    elevation: 0,
+    height: 44,
+  },
+  searchInput: { fontFamily: 'Inter-Regular', fontSize: 15, minHeight: 44 },
+  filterRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-end',
-    gap: 12,
+    alignItems: 'center',
   },
-  filterContainer: { display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 8 },
-  activityIndicator: { marginTop: 24 },
-  footerIndicator: { marginVertical: 16 },
-  btnAdd: { position: 'absolute', right: 24, bottom: 24 },
-  listEmptyMessage: { textAlign: 'center' },
-  errorMessage: { marginInline: 16 },
+  filterGroup: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  list: { paddingHorizontal: 20, paddingTop: 4, paddingBottom: 100, gap: 12 },
+  centered: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  footer: { marginVertical: 20 },
+  emptyState: { alignItems: 'center', paddingTop: 80, gap: 12 },
+  emptyText: { fontFamily: 'Inter-Regular' },
+  fabContainer: { position: 'absolute', right: 20 },
+  fab: {
+    width: 56,
+    height: 56,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 6,
+  },
 });
 
 export default Library;

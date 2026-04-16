@@ -1,4 +1,4 @@
-import { StyleProp, TextStyle, ViewStyle } from 'react-native';
+import { StyleSheet, StyleProp, TextStyle, ViewStyle } from 'react-native';
 import { Button, Icon, type ButtonProps } from 'react-native-paper';
 
 interface Props extends ButtonProps {
@@ -10,13 +10,13 @@ const AppButton = ({ size = 'default', style, contentStyle, labelStyle, icon, ..
     return (
       <Button
         {...rest}
-        style={style as StyleProp<ViewStyle>}
-        contentStyle={[{ height: 56 }, contentStyle]}
-        labelStyle={[{ fontSize: 18 }, labelStyle as StyleProp<TextStyle>]}
+        style={[styles.base, style] as StyleProp<ViewStyle>}
+        contentStyle={[styles.largeContent, contentStyle]}
+        labelStyle={[styles.largeLabel, labelStyle as StyleProp<TextStyle>]}
         icon={
           typeof icon === 'string'
             ? ({ color, size: defaultSize }) => (
-                <Icon source={icon} color={color} size={defaultSize + 8} />
+                <Icon source={icon} color={color} size={defaultSize + 6} />
               )
             : icon
         }
@@ -27,12 +27,19 @@ const AppButton = ({ size = 'default', style, contentStyle, labelStyle, icon, ..
   return (
     <Button
       {...rest}
-      style={style}
+      style={[styles.base, style] as StyleProp<ViewStyle>}
       contentStyle={contentStyle}
-      labelStyle={labelStyle}
+      labelStyle={[styles.defaultLabel, labelStyle]}
       icon={icon}
     />
   );
 };
+
+const styles = StyleSheet.create({
+  base: { borderRadius: 12 },
+  defaultLabel: { fontFamily: 'Inter-Medium', fontSize: 14 },
+  largeContent: { height: 52 },
+  largeLabel: { fontFamily: 'Inter-SemiBold', fontSize: 16 },
+});
 
 export default AppButton;

@@ -1,3 +1,4 @@
+import AnimatedScreen from '@/shared/components/ui/AnimatedScreen';
 import AppButton from '@/shared/components/ui/AppButton';
 import { commonStyles } from '@/shared/styles/common';
 import { showErrorToast } from '@/shared/utils/toast';
@@ -10,8 +11,8 @@ import { auth } from '@/shared/services/firebase';
 import { router } from 'expo-router';
 import { createUserWithEmailAndPassword, updateProfile } from '@react-native-firebase/auth';
 import { useForm } from 'react-hook-form';
-import { View } from 'react-native';
-import { Card, Text, useTheme } from 'react-native-paper';
+import { Pressable, StyleSheet, View } from 'react-native';
+import { Divider, Text, useTheme } from 'react-native-paper';
 
 const SignUp = () => {
   const theme = useTheme();
@@ -38,61 +39,95 @@ const SignUp = () => {
   };
 
   return (
-    <View style={[commonStyles.authContainer, { backgroundColor: theme.colors.background }]}>
-      <Card>
-        <Card.Content>
-          <View style={commonStyles.authTitleWrapper}>
-            <Logo variant="wordmark" size="lg" showIcon />
-            <Text variant="bodyMedium" style={commonStyles.authTitle}>
-              Create your account
-            </Text>
-          </View>
+    <AnimatedScreen>
+      <View style={[commonStyles.authContainer, { backgroundColor: theme.colors.background }]}>
+        <View style={commonStyles.authTitleWrapper}>
+          <Logo variant="wordmark" size="lg" showIcon />
+          <Text
+            variant="bodyMedium"
+            style={[commonStyles.authTitle, { color: theme.colors.onSurfaceVariant }]}
+          >
+            Create your account
+          </Text>
+        </View>
+
+        <View style={styles.formGroup}>
           <FormTextInput control={control} name="name" label="Name" />
           <FormTextInput
             control={control}
             name="email"
             label="Email"
-            textInputProps={{
-              autoCapitalize: 'none',
-              keyboardType: 'email-address',
-              style: commonStyles.authFormComponentMargin,
-            }}
+            textInputProps={{ autoCapitalize: 'none', keyboardType: 'email-address' }}
           />
           <FormTextInput
             control={control}
             name="password"
             label="Password"
-            textInputProps={{ secureTextEntry: true, style: commonStyles.authFormComponentMargin }}
+            textInputProps={{ secureTextEntry: true }}
           />
-          <AppButton
-            mode="contained"
-            style={commonStyles.authBtnMargin}
-            loading={isSubmitting}
-            disabled={isSubmitting}
-            onPress={handleSubmit(handleSignUp)}
-          >
-            Create Account
-          </AppButton>
-          <AppButton
-            icon="google"
-            mode="outlined"
-            style={commonStyles.authFormComponentMargin}
-            loading={isSigningIn}
-            disabled={!ready || isSigningIn}
-            onPress={signInWithGoogle}
-          >
-            Continue with Google
-          </AppButton>
-          <AppButton
-            onPress={() => router.push('/(auth)/sign-in')}
-            style={commonStyles.authFormComponentMargin}
-          >
+        </View>
+
+        <AppButton
+          mode="contained"
+          style={styles.primaryBtn}
+          loading={isSubmitting}
+          disabled={isSubmitting}
+          onPress={handleSubmit(handleSignUp)}
+        >
+          Create Account
+        </AppButton>
+
+        <View style={styles.dividerRow}>
+          <Divider style={[styles.divider, { backgroundColor: theme.colors.outlineVariant }]} />
+          <Text style={[styles.dividerText, { color: theme.colors.onSurfaceVariant }]}>or</Text>
+          <Divider style={[styles.divider, { backgroundColor: theme.colors.outlineVariant }]} />
+        </View>
+
+        <AppButton
+          icon="google"
+          mode="outlined"
+          loading={isSigningIn}
+          disabled={!ready || isSigningIn}
+          onPress={signInWithGoogle}
+        >
+          Continue with Google
+        </AppButton>
+
+        <View style={styles.footerRow}>
+          <Text style={[styles.footerText, { color: theme.colors.onSurfaceVariant }]}>
             Already have an account?
-          </AppButton>
-        </Card.Content>
-      </Card>
-    </View>
+          </Text>
+          <Pressable onPress={() => router.push('/(auth)/sign-in')}>
+            <Text style={[styles.footerLink, { color: theme.colors.primary }]}>
+              Sign in
+            </Text>
+          </Pressable>
+        </View>
+      </View>
+    </AnimatedScreen>
   );
 };
+
+const styles = StyleSheet.create({
+  formGroup: { gap: 12, marginBottom: 24 },
+  primaryBtn: { marginBottom: 20 },
+  dividerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+    marginBottom: 20,
+  },
+  divider: { flex: 1, height: 1 },
+  dividerText: { fontFamily: 'Inter-Regular', fontSize: 13 },
+  footerRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: 32,
+  },
+  footerText: { fontFamily: 'Inter-Regular', fontSize: 14 },
+  footerLink: { fontFamily: 'Inter-SemiBold', fontSize: 14 },
+});
 
 export default SignUp;

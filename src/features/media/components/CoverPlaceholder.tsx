@@ -25,7 +25,13 @@ const CoverPlaceholder = ({
     <View
       style={[
         commonStyles.preview,
-        { borderColor: theme.colors.outlineVariant, position: 'relative' },
+        styles.container,
+        {
+          backgroundColor: theme.colors.surfaceVariant,
+          borderWidth: 1,
+          borderColor: theme.colors.outlineVariant,
+          borderStyle: 'dashed',
+        },
         previewStyle,
       ]}
     >
@@ -33,7 +39,7 @@ const CoverPlaceholder = ({
         {loading ? (
           <ActivityIndicator />
         ) : (
-          <Icon source="image-outline" size={48} color={theme.colors.outline} />
+          <Icon source="image-outline" size={40} color={theme.colors.outline} />
         )}
       </View>
       <View style={styles.overlayActions}>
@@ -45,7 +51,8 @@ const CoverPlaceholder = ({
               onPress={() => setMenuVisible(true)}
               iconColor={theme.colors.onPrimary}
               containerColor={theme.colors.primary}
-              size={24}
+              size={18}
+              style={styles.addBtn}
             />
           }
           visible={menuVisible}
@@ -59,15 +66,14 @@ const CoverPlaceholder = ({
 };
 
 const styles = StyleSheet.create({
+  container: { position: 'relative' },
   centerContent: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   overlayActions: {
     position: 'absolute',
-    bottom: 8,
-    right: 8,
-    flexDirection: 'row',
-    gap: 8,
-    alignItems: 'center',
+    bottom: 10,
+    right: 10,
   },
+  addBtn: { borderRadius: 10 },
 });
 
 export default CoverPlaceholder;

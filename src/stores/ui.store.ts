@@ -3,7 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
-export type ThemePref = 'light' | 'dark';
+export type ThemePref = 'light' | 'dark' | 'system';
 
 interface UIState {
   theme: ThemePref;
@@ -15,7 +15,7 @@ interface UIState {
 export const useUI = create<UIState>()(
   persist(
     (set) => ({
-      theme: 'light',
+      theme: 'system',
       filters: { q: '', status: 'all', type: 'all', sort: { key: 'updatedAt', order: 'desc' } },
       setTheme: (theme) => set({ theme }),
       setFilters: (f) => set((s) => ({ filters: { ...s.filters, ...f } })),

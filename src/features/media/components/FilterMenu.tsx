@@ -1,5 +1,5 @@
-import { StyleSheet, View } from 'react-native';
-import { Chip, Menu, Text, useTheme } from 'react-native-paper';
+import { StyleSheet } from 'react-native';
+import { Chip, Menu, useTheme } from 'react-native-paper';
 
 interface Props<T extends string> {
   label: string;
@@ -19,7 +19,6 @@ const FilterMenu = <T extends string>({
   onSelect,
 }: Props<T>) => {
   const theme = useTheme();
-  const selectedItemStyle = { backgroundColor: theme.colors.secondaryContainer };
 
   return (
     <Menu
@@ -28,14 +27,15 @@ const FilterMenu = <T extends string>({
       anchorPosition="bottom"
       contentStyle={styles.menuContent}
       anchor={
-        <View>
-          <Text variant="labelSmall" style={styles.chipLabel}>
-            {label}
-          </Text>
-          <Chip mode="outlined" onPress={() => onChangeVisibility(true)}>
-            {value}
-          </Chip>
-        </View>
+        <Chip
+          mode="outlined"
+          onPress={() => onChangeVisibility(true)}
+          textStyle={styles.chipText}
+          style={styles.chip}
+          compact
+        >
+          {value === 'all' ? label : value}
+        </Chip>
       }
     >
       {options.map((t) => {
@@ -45,8 +45,9 @@ const FilterMenu = <T extends string>({
             key={t.value}
             onPress={() => onSelect(t.value)}
             title={t.label}
+            titleStyle={styles.menuItemText}
             leadingIcon={selected ? 'check' : undefined}
-            style={selected ? selectedItemStyle : undefined}
+            style={selected ? { backgroundColor: theme.colors.surfaceVariant } : undefined}
           />
         );
       })}
@@ -55,8 +56,10 @@ const FilterMenu = <T extends string>({
 };
 
 const styles = StyleSheet.create({
-  chipLabel: { marginBottom: 4, opacity: 0.7 },
+  chip: { borderRadius: 10 },
+  chipText: { fontFamily: 'Inter-Medium', fontSize: 13 },
   menuContent: { marginTop: 4 },
+  menuItemText: { fontFamily: 'Inter-Regular', fontSize: 14 },
 });
 
 export default FilterMenu;
