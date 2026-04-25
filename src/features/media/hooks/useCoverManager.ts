@@ -17,7 +17,8 @@ export const useCoverManager = ({ itemId, ownerId, currentCoverUrl }: Args) => {
     try {
       await deleteCoverByUrl(url);
     } catch (e) {
-      console.error('[useCoverManager] failed to delete remote cover:', e);
+      if ((e as { code?: string })?.code === 'storage/object-not-found') return;
+      console.warn('[useCoverManager] failed to delete remote cover:', e);
     }
   };
 

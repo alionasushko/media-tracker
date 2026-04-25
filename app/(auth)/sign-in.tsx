@@ -11,7 +11,7 @@ import { auth } from '@/shared/services/firebase';
 import { router } from 'expo-router';
 import { signInWithEmailAndPassword } from '@react-native-firebase/auth';
 import { useForm } from 'react-hook-form';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Keyboard, Pressable, StyleSheet, TouchableWithoutFeedback, View } from 'react-native';
 import { Divider, Text, useTheme } from 'react-native-paper';
 
 const SignIn = () => {
@@ -39,69 +39,69 @@ const SignIn = () => {
 
   return (
     <AnimatedScreen>
-      <View style={[commonStyles.authContainer, { backgroundColor: theme.colors.background }]}>
-        <View style={commonStyles.authTitleWrapper}>
-          <Logo variant="wordmark" size="lg" showIcon />
-          <Text
-            variant="bodyMedium"
-            style={[commonStyles.authTitle, { color: theme.colors.onSurfaceVariant }]}
-          >
-            Sign in to your account
-          </Text>
-        </View>
-
-        <View style={styles.formGroup}>
-          <FormTextInput
-            control={control}
-            name="email"
-            label="Email"
-            textInputProps={{ autoCapitalize: 'none', keyboardType: 'email-address' }}
-          />
-          <FormTextInput
-            control={control}
-            name="password"
-            label="Password"
-            textInputProps={{ secureTextEntry: true }}
-          />
-        </View>
-
-        <AppButton
-          mode="contained"
-          style={styles.primaryBtn}
-          loading={isSubmitting}
-          disabled={isSubmitting}
-          onPress={handleSubmit(handleSignIn)}
-        >
-          Sign In
-        </AppButton>
-
-        <View style={styles.dividerRow}>
-          <Divider style={[styles.divider, { backgroundColor: theme.colors.outlineVariant }]} />
-          <Text style={[styles.dividerText, { color: theme.colors.onSurfaceVariant }]}>or</Text>
-          <Divider style={[styles.divider, { backgroundColor: theme.colors.outlineVariant }]} />
-        </View>
-
-        <AppButton
-          icon="google"
-          mode="outlined"
-          loading={isSigningIn}
-          disabled={!ready || isSigningIn}
-          onPress={signInWithGoogle}
-        >
-          Continue with Google
-        </AppButton>
-
-        <View style={styles.footerRow}>
-          <Text style={[styles.footerText, { color: theme.colors.onSurfaceVariant }]}>
-            Don't have an account?
-          </Text>
-          <Pressable onPress={() => router.push('/(auth)/sign-up')}>
-            <Text style={[styles.footerLink, { color: theme.colors.primary }]}>
-              Create one
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+        <View style={[commonStyles.authContainer, { backgroundColor: theme.colors.background }]}>
+          <View style={commonStyles.authTitleWrapper}>
+            <Logo variant="wordmark" size="lg" showIcon />
+            <Text
+              variant="bodyMedium"
+              style={[commonStyles.authTitle, { color: theme.colors.onSurfaceVariant }]}
+            >
+              Sign in to your account
             </Text>
-          </Pressable>
+          </View>
+
+          <View style={styles.formGroup}>
+            <FormTextInput
+              control={control}
+              name="email"
+              label="Email"
+              textInputProps={{ autoCapitalize: 'none', keyboardType: 'email-address' }}
+            />
+            <FormTextInput
+              control={control}
+              name="password"
+              label="Password"
+              textInputProps={{ secureTextEntry: true }}
+            />
+          </View>
+
+          <AppButton
+            mode="contained"
+            style={styles.primaryBtn}
+            loading={isSubmitting}
+            disabled={isSubmitting}
+            onPress={handleSubmit(handleSignIn)}
+          >
+            Sign In
+          </AppButton>
+
+          <View style={styles.dividerRow}>
+            <Divider style={[styles.divider, { backgroundColor: theme.colors.outlineVariant }]} />
+            <Text style={[styles.dividerText, { color: theme.colors.onSurfaceVariant }]}>or</Text>
+            <Divider style={[styles.divider, { backgroundColor: theme.colors.outlineVariant }]} />
+          </View>
+
+          <AppButton
+            icon="google"
+            mode="outlined"
+            loading={isSigningIn}
+            disabled={!ready || isSigningIn}
+            onPress={signInWithGoogle}
+          >
+            Continue with Google
+          </AppButton>
+
+          <View style={styles.footerRow}>
+            <Text style={[styles.footerText, { color: theme.colors.onSurfaceVariant }]}>
+              Don't have an account?
+            </Text>
+            <Pressable onPress={() => router.push('/(auth)/sign-up')}>
+              <Text style={[styles.footerLink, { color: theme.colors.primary }]}>Create one</Text>
+            </Pressable>
+          </View>
         </View>
-      </View>
+      </TouchableWithoutFeedback>
     </AnimatedScreen>
   );
 };

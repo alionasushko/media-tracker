@@ -2,7 +2,7 @@ import { useAuthUser } from '@/features/auth/hooks/useAuthUser';
 import { useUI } from '@/stores/ui.store';
 import { darkTheme, lightTheme } from '@/shared/theme';
 import { Redirect, Stack } from 'expo-router';
-import { useColorScheme } from 'react-native';
+import { Platform, useColorScheme } from 'react-native';
 
 const AppLayout = () => {
   const { user, initializing } = useAuthUser();
@@ -17,7 +17,7 @@ const AppLayout = () => {
     <Stack
       screenOptions={{
         headerShown: false,
-        animation: 'fade_from_bottom',
+        animation: Platform.OS === 'ios' ? 'fade_from_bottom' : 'slide_from_right',
         animationDuration: 200,
         contentStyle: { backgroundColor: theme.colors.background },
       }}

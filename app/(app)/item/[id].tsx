@@ -9,13 +9,15 @@ import {
 } from '@/features/media/queries';
 import type { Status } from '@/features/media/types';
 import AnimatedScreen from '@/shared/components/ui/AnimatedScreen';
+import ConfirmDialog from '@/shared/components/ui/ConfirmDialog';
 import Rating from '@/shared/components/ui/Rating';
 import { deleteCoverByUrl } from '@/shared/services/storage';
 import { commonStyles } from '@/shared/styles/common';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
-import { Button, Chip, Dialog, Icon, Portal, Text, TextInput, useTheme } from 'react-native-paper';
+import { Pressable, StyleSheet, View } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
+import { Chip, Icon, Text, TextInput, useTheme } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useDebouncedCallback } from 'use-debounce';
 
@@ -112,7 +114,11 @@ const ItemDetail = () => {
           </Pressable>
         </View>
 
-        <ScrollView contentContainerStyle={styles.scrollContent} keyboardDismissMode="on-drag">
+        <KeyboardAwareScrollView
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+          bottomOffset={20}
+        >
           <CoverUploader
             value={data.coverUrl ?? null}
             loading={isUploading}
@@ -176,27 +182,16 @@ const ItemDetail = () => {
               style={styles.notesInput}
             />
           </View>
-        </ScrollView>
-        <Portal>
-          <Dialog
-            visible={deleteVisible}
-            onDismiss={() => setDeleteVisible(false)}
-            style={{ borderRadius: 16 }}
-          >
-            <Dialog.Title>Delete item</Dialog.Title>
-            <Dialog.Content>
-              <Text variant="bodyMedium">
-                {`Are you sure you want to delete "${data.title}"? This can't be undone.`}
-              </Text>
-            </Dialog.Content>
-            <Dialog.Actions>
-              <Button onPress={() => setDeleteVisible(false)}>Cancel</Button>
-              <Button textColor={theme.colors.error} onPress={handleConfirmDelete}>
-                Delete
-              </Button>
-            </Dialog.Actions>
-          </Dialog>
-        </Portal>
+        </KeyboardAwareScrollView>
+        <ConfirmDialog
+          visible={deleteVisible}
+          onDismiss={() => setDeleteVisible(false)}
+          onConfirm={handleConfirmDelete}
+          title="Delete item"
+          message={`Are you sure you want to delete "${data.title}"? This can't be undone.`}
+          confirmLabel="Delete"
+          destructive
+        />
       </View>
     </AnimatedScreen>
   );

@@ -6,22 +6,17 @@ import { AddMediaSchema } from '@/features/media/schema';
 import FormSegmentedButtons from '@/shared/components/form/FormSegmentedButtons';
 import FormTextInput from '@/shared/components/form/FormTextInput';
 import AnimatedScreen from '@/shared/components/ui/AnimatedScreen';
-import AppButton from '@/shared/components/ui/AppButton';
+import ConfirmDialog from '@/shared/components/ui/ConfirmDialog';
 import { uploadCoverForMedia } from '@/shared/services/storage';
 import { commonStyles } from '@/shared/styles/common';
 import { showErrorToast } from '@/shared/utils/toast';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { router } from 'expo-router';
-import { useState } from 'react';
+import { usePreventRemove, type NavigationAction } from '@react-navigation/native';
+import { router, useNavigation } from 'expo-router';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import {
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  View,
-} from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { Icon, Text, useTheme } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { z } from 'zod';
@@ -34,17 +29,38 @@ const AddItem = () => {
   const ownerId = useCurrentUserId();
   const create = useCreateMedia();
   const update = useUpdateMedia(ownerId ?? '');
+  const navigation = useNavigation();
   const [coverUri, setCoverUri] = useState<string | null>(null);
+  const [exitAllowed, setExitAllowed] = useState(false);
+  const [pendingExitAction, setPendingExitAction] = useState<NavigationAction | null>(null);
 
   const {
     control,
     handleSubmit,
-    formState: { isSubmitting, isValid },
+    formState: { isSubmitting, isValid, isDirty },
   } = useForm<FormValues>({
     resolver: zodResolver(AddMediaSchema),
     defaultValues: { title: '', notes: '', type: 'movie', status: 'plan' },
     mode: 'onBlur',
   });
+
+  const hasUnsavedChanges = (isDirty || coverUri !== null) && !exitAllowed;
+
+  usePreventRemove(hasUnsavedChanges, ({ data }) => {
+    setPendingExitAction(data.action);
+  });
+
+  const handleConfirmDiscard = () => {
+    const action = pendingExitAction;
+    setPendingExitAction(null);
+    if (action) navigation.dispatch(action);
+  };
+
+  useEffect(() => {
+    if (!exitAllowed) return;
+    router.back();
+    router.replace('/(app)');
+  }, [exitAllowed]);
 
   const onSubmit = async ({ title, notes, type, status }: FormValues) => {
     if (!ownerId) return;
@@ -65,8 +81,7 @@ const AddItem = () => {
       }
     }
 
-    router.back();
-    router.replace('/(app)');
+    setExitAllowed(true);
   };
 
   const handleGoBack = () => router.back();
@@ -80,79 +95,85 @@ const AddItem = () => {
             <Icon source="arrow-left" size={22} color={theme.colors.onBackground} />
           </Pressable>
           <Text style={[styles.headerTitle, { color: theme.colors.onBackground }]}>Add Media</Text>
-          <View style={styles.headerSpacer} />
+          <Pressable
+            onPress={handleSubmit(onSubmit)}
+            disabled={!canSave}
+            hitSlop={8}
+            style={!canSave && styles.saveDisabled}
+          >
+            {isSubmitting ? (
+              <ActivityIndicator size="small" color={theme.colors.primary} />
+            ) : (
+              <Icon source="content-save" size={24} color={theme.colors.primary} />
+            )}
+          </Pressable>
         </View>
 
-        <KeyboardAvoidingView
-          style={commonStyles.container}
-          behavior={Platform.select({ ios: 'padding', android: undefined })}
+        <KeyboardAwareScrollView
+          keyboardShouldPersistTaps="handled"
+          contentContainerStyle={styles.scrollContent}
+          bottomOffset={20}
         >
-          <ScrollView
-            keyboardShouldPersistTaps="handled"
-            contentContainerStyle={styles.scrollContent}
-          >
-            <View style={styles.section}>
-              <Text style={[styles.sectionLabel, { color: theme.colors.onSurfaceVariant }]}>
-                COVER
-              </Text>
-              <CoverUploader value={coverUri} onChange={setCoverUri} />
-            </View>
+          <View style={styles.section}>
+            <Text style={[styles.sectionLabel, { color: theme.colors.onSurfaceVariant }]}>
+              COVER
+            </Text>
+            <CoverUploader value={coverUri} onChange={setCoverUri} />
+          </View>
 
-            <View style={styles.section}>
-              <Text style={[styles.sectionLabel, { color: theme.colors.onSurfaceVariant }]}>
-                DETAILS
-              </Text>
-              <View style={styles.fieldGroup}>
-                <FormTextInput
-                  control={control}
-                  name="title"
-                  label="Title"
-                  textInputProps={{
-                    placeholder: 'Enter title',
-                    returnKeyType: 'next',
-                  }}
-                />
-                <FormTextInput
-                  control={control}
-                  name="notes"
-                  label="Notes"
-                  textInputProps={{
-                    placeholder: 'Add notes or thoughts\u2026',
-                    returnKeyType: 'default',
-                    multiline: true,
-                    numberOfLines: 4,
-                    style: styles.notesInput,
-                  }}
-                />
-              </View>
+          <View style={styles.section}>
+            <Text style={[styles.sectionLabel, { color: theme.colors.onSurfaceVariant }]}>
+              DETAILS
+            </Text>
+            <View style={styles.fieldGroup}>
+              <FormTextInput
+                control={control}
+                name="title"
+                label="Title"
+                textInputProps={{
+                  placeholder: 'Enter title',
+                  returnKeyType: 'next',
+                }}
+              />
+              <FormTextInput
+                control={control}
+                name="notes"
+                label="Notes"
+                textInputProps={{
+                  placeholder: 'Add notes or thoughts\u2026',
+                  returnKeyType: 'default',
+                  multiline: true,
+                  numberOfLines: 4,
+                  style: styles.notesInput,
+                }}
+              />
             </View>
+          </View>
 
-            <View style={styles.section}>
-              <Text style={[styles.sectionLabel, { color: theme.colors.onSurfaceVariant }]}>
-                TYPE
-              </Text>
-              <FormSegmentedButtons control={control} name="type" buttons={typeButtons} />
-            </View>
+          <View style={styles.section}>
+            <Text style={[styles.sectionLabel, { color: theme.colors.onSurfaceVariant }]}>
+              TYPE
+            </Text>
+            <FormSegmentedButtons control={control} name="type" buttons={typeButtons} />
+          </View>
 
-            <View style={styles.section}>
-              <Text style={[styles.sectionLabel, { color: theme.colors.onSurfaceVariant }]}>
-                STATUS
-              </Text>
-              <FormSegmentedButtons control={control} name="status" buttons={statusButtons} />
-            </View>
-
-            <AppButton
-              mode="contained"
-              icon={isSubmitting ? undefined : 'content-save'}
-              onPress={handleSubmit(onSubmit)}
-              disabled={!canSave}
-              loading={isSubmitting}
-              style={styles.saveBtn}
-            >
-              {isSubmitting ? 'Saving\u2026' : 'Save'}
-            </AppButton>
-          </ScrollView>
-        </KeyboardAvoidingView>
+          <View style={styles.section}>
+            <Text style={[styles.sectionLabel, { color: theme.colors.onSurfaceVariant }]}>
+              STATUS
+            </Text>
+            <FormSegmentedButtons control={control} name="status" buttons={statusButtons} />
+          </View>
+        </KeyboardAwareScrollView>
+        <ConfirmDialog
+          visible={pendingExitAction !== null}
+          onDismiss={() => setPendingExitAction(null)}
+          onConfirm={handleConfirmDiscard}
+          title="Discard changes?"
+          message="You have unsaved changes. Are you sure you want to discard them?"
+          confirmLabel="Discard"
+          cancelLabel="Keep editing"
+          destructive
+        />
       </View>
     </AnimatedScreen>
   );
@@ -172,7 +193,7 @@ const styles = StyleSheet.create({
     letterSpacing: -0.5,
     flex: 1,
   },
-  headerSpacer: { width: 22 },
+  saveDisabled: { opacity: 0.4 },
   scrollContent: { paddingHorizontal: 20, paddingTop: 8, paddingBottom: 40 },
   section: { marginBottom: 32 },
   sectionLabel: {
@@ -183,7 +204,6 @@ const styles = StyleSheet.create({
   },
   fieldGroup: { gap: 12 },
   notesInput: { minHeight: 100, textAlignVertical: 'top' },
-  saveBtn: { marginTop: 8 },
 });
 
 export default AddItem;

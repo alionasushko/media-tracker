@@ -10,6 +10,8 @@ import { MutationCache, QueryCache, QueryClient, QueryClientProvider } from '@ta
 import { Slot } from 'expo-router';
 import { useEffect } from 'react';
 import { useColorScheme } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { Provider as PaperProvider } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
@@ -32,8 +34,7 @@ const RootLayout = () => {
   const toastConfig = useToastConfig();
   const insets = useSafeAreaInsets();
 
-  const resolvedMode =
-    themePref === 'system' ? (systemScheme ?? 'light') : themePref;
+  const resolvedMode = themePref === 'system' ? (systemScheme ?? 'light') : themePref;
   const theme = resolvedMode === 'dark' ? darkTheme : lightTheme;
 
   const [fontsLoaded] = useFonts({
@@ -54,13 +55,17 @@ const RootLayout = () => {
   if (!fontsLoaded) return null;
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <PaperProvider theme={theme}>
-        <StatusBar style={resolvedMode === 'dark' ? 'light' : 'dark'} />
-        <Slot />
-        <Toast config={toastConfig} topOffset={insets.top + 12} />
-      </PaperProvider>
-    </QueryClientProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <QueryClientProvider client={queryClient}>
+        <KeyboardProvider>
+          <PaperProvider theme={theme}>
+            <StatusBar style={resolvedMode === 'dark' ? 'light' : 'dark'} />
+            <Slot />
+            <Toast config={toastConfig} topOffset={insets.top + 12} />
+          </PaperProvider>
+        </KeyboardProvider>
+      </QueryClientProvider>
+    </GestureHandlerRootView>
   );
 };
 
