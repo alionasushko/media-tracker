@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "media-tracker",
+    "name": "Media Tracker",
     "slug": "media-tracker",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -20,7 +20,8 @@
       "package": "com.alionasushko.mediatracker",
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#ffffff",
+        "monochromeImage": "./assets/images/monochrome-icon.png"
       },
       "edgeToEdgeEnabled": true,
       "permissions": [
@@ -36,7 +37,7 @@
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#ffffff"
+          "backgroundColor": "#6D5ACE"
         }
       ],
       [
