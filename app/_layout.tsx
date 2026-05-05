@@ -38,10 +38,13 @@ const RootLayout = () => {
   const theme = resolvedMode === 'dark' ? darkTheme : lightTheme;
 
   const [fontsLoaded] = useFonts({
-    'Inter-Regular': require('../assets/fonts/Inter-Regular.ttf'),
-    'Inter-Medium': require('../assets/fonts/Inter-Medium.ttf'),
-    'Inter-SemiBold': require('../assets/fonts/Inter-SemiBold.ttf'),
-    'Inter-Bold': require('../assets/fonts/Inter-Bold.ttf'),
+    'InstrumentSans-Regular': require('../assets/fonts/InstrumentSans-Regular.ttf'),
+    'InstrumentSans-Medium': require('../assets/fonts/InstrumentSans-Medium.ttf'),
+    'InstrumentSans-SemiBold': require('../assets/fonts/InstrumentSans-SemiBold.ttf'),
+    'InstrumentSans-Bold': require('../assets/fonts/InstrumentSans-Bold.ttf'),
+    'JetBrainsMono-Regular': require('../assets/fonts/JetBrainsMono-Regular.ttf'),
+    'JetBrainsMono-Medium': require('../assets/fonts/JetBrainsMono-Medium.ttf'),
+    'JetBrainsMono-SemiBold': require('../assets/fonts/JetBrainsMono-SemiBold.ttf'),
   });
 
   useEffect(() => {

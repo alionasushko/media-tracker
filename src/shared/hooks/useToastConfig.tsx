@@ -13,13 +13,13 @@ export const useToastConfig = (): ToastConfig => {
   };
 
   const text1Style = {
-    fontFamily: 'Inter-SemiBold',
+    fontFamily: 'InstrumentSans-SemiBold',
     fontSize: 14,
     color: theme.colors.onSurface,
   };
 
   const text2Style = {
-    fontFamily: 'Inter-Regular',
+    fontFamily: 'InstrumentSans-Regular',
     fontSize: 13,
     color: theme.colors.onSurfaceVariant,
   };
