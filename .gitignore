@@ -48,3 +48,6 @@ google-services.json
 
 # typescript
 *.tsbuildinfo
+
+# Claude Code (personal/local; shared config lives in .claude/settings.json)
+.claude/settings.local.json

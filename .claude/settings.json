@@ -1,0 +1,36 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx tsc:*)",
+      "Bash(npx expo lint)",
+      "Bash(npx expo doctor)",
+      "Bash(npx expo config:*)",
+      "Bash(npm run lint)",
+      "Bash(npm ls:*)",
+      "Bash(npm view:*)",
+      "Bash(npm outdated)",
+
+      "Bash(xcodebuild -version)",
+      "Bash(xcode-select -p)",
+      "Bash(xcrun simctl list:*)",
+      "Bash(pod outdated)",
+
+      "Bash(firebase --version)",
+      "Bash(firebase projects:list)"
+    ]
+  },
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "INPUT=$(cat); if echo \"$INPUT\" | jq -e '.stop_hook_active == true' >/dev/null 2>&1; then exit 0; fi; OUT=$(npx tsc --noEmit 2>&1); EXIT=$?; if [ \"$EXIT\" -ne 0 ]; then jq -n --arg r \"$(printf '%s\\n' \"$OUT\" | head -200)\" '{decision:\"block\", reason:(\"TypeScript errors — fix before finishing:\\n\" + $r)}'; fi",
+            "timeout": 120,
+            "statusMessage": "Type-checking with tsc..."
+          }
+        ]
+      }
+    ]
+  }
+}
