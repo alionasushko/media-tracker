@@ -1,55 +1,127 @@
-import AppButton from '@/shared/components/ui/AppButton';
-import { Link, useRouter } from 'expo-router';
-import { StyleSheet, View } from 'react-native';
-import { Icon, Text, useTheme } from 'react-native-paper';
+import GlassButton from '@/shared/components/design/GlassButton';
+import PrimaryButton from '@/shared/components/design/PrimaryButton';
+import { Display } from '@/shared/components/design/text';
+import { useAppTheme } from '@/shared/theme';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
+import { StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const NotFound = () => {
   const router = useRouter();
-  const theme = useTheme();
+  const t = useAppTheme();
+  const insets = useSafeAreaInsets();
+
   const handleGoBack = () => router.back();
+  const handleGoHome = () => router.replace('/');
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      <Icon source="compass-off" size={56} color={theme.colors.outline} />
-      <Text style={[styles.heading, { color: theme.colors.onSurface }]}>
-        Page not found
-      </Text>
-      <Text style={[styles.description, { color: theme.colors.onSurfaceVariant }]}>
-        We couldn't find that screen. It may have been moved or deleted.
-      </Text>
-      <View style={styles.btnContainer}>
-        <AppButton mode="outlined" onPress={handleGoBack}>
-          Go Back
-        </AppButton>
-        <Link href="/" asChild>
-          <AppButton mode="contained">Go Home</AppButton>
-        </Link>
+    <View style={[styles.container, { backgroundColor: t.tokens.semantic.bg }]}>
+      <View style={[styles.headerRow, { paddingTop: insets.top + 8 }]}>
+        <GlassButton onPress={handleGoBack} accessibilityLabel="Back">
+          <MaterialCommunityIcons
+            name="chevron-left"
+            size={20}
+            color={t.tokens.semantic.ink}
+          />
+        </GlassButton>
+      </View>
+
+      <View style={styles.center}>
+        <View style={styles.numericMark}>
+          <Text
+            style={[
+              styles.numeral,
+              { fontFamily: t.tokens.fonts.serifMedium, color: t.tokens.semantic.ink },
+            ]}
+          >
+            4
+          </Text>
+          <Text
+            style={[
+              styles.numeral,
+              styles.numeralItalic,
+              { fontFamily: t.tokens.fonts.serifMedium, color: t.tokens.semantic.accent },
+            ]}
+          >
+            0
+          </Text>
+          <Text
+            style={[
+              styles.numeral,
+              { fontFamily: t.tokens.fonts.serifMedium, color: t.tokens.semantic.ink },
+            ]}
+          >
+            4
+          </Text>
+        </View>
+
+        <Display size={22} style={styles.tagline}>
+          That shelf is{' '}
+          <Display size={22} style={{ fontStyle: 'italic', color: t.tokens.semantic.accent }}>
+            empty
+          </Display>
+          .
+        </Display>
+
+        <Text
+          style={[
+            styles.body,
+            { fontFamily: t.tokens.fonts.sansRegular, color: t.tokens.semantic.inkMute },
+          ]}
+        >
+          We couldn&apos;t find what you were looking for. It may have been removed, or the link
+          might be stale.
+        </Text>
+
+        <View style={styles.cta}>
+          <PrimaryButton label="Back to home" icon="home-outline" onPress={handleGoHome} />
+        </View>
       </View>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
+  container: { flex: 1 },
+  headerRow: {
+    paddingHorizontal: 16,
+    paddingBottom: 4,
+  },
+  center: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 24,
-    gap: 12,
+    paddingHorizontal: 32,
   },
-  heading: {
-    fontFamily: 'Inter-Bold',
-    fontSize: 22,
-    letterSpacing: -0.3,
-    marginTop: 8,
+  numericMark: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
-  description: {
-    fontFamily: 'Inter-Regular',
-    fontSize: 15,
+  numeral: {
+    fontSize: 140,
+    lineHeight: 120,
+    letterSpacing: -7,
+  },
+  numeralItalic: {
+    fontStyle: 'italic',
+  },
+  tagline: {
     textAlign: 'center',
-    lineHeight: 22,
+    marginTop: 24,
   },
-  btnContainer: { flexDirection: 'row', gap: 12, marginTop: 20 },
+  body: {
+    fontSize: 13,
+    lineHeight: 20,
+    textAlign: 'center',
+    marginTop: 10,
+    maxWidth: 280,
+  },
+  cta: {
+    marginTop: 32,
+    width: '100%',
+    maxWidth: 240,
+  },
 });
 
 export default NotFound;

@@ -16,7 +16,6 @@ export interface UserMedia {
   rating?: number;
   notes?: string;
   tags?: string[];
-  progress?: { current?: number; total?: number };
   coverUrl?: string | null;
   createdAt: number;
   updatedAt: number;

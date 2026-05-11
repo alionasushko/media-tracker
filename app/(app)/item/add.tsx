@@ -1,30 +1,36 @@
 import { useCurrentUserId } from '@/features/auth/hooks/useCurrentUserId';
-import CoverUploader from '@/features/media/components/CoverUploader';
-import { statusButtons, typeButtons } from '@/features/media/constants';
+import AddCoverRow from '@/features/media/components/AddCoverRow';
+import AddItemHeader from '@/features/media/components/AddItemHeader';
+import AddStatusSegmented from '@/features/media/components/AddStatusSegmented';
+import AddTypeGrid from '@/features/media/components/AddTypeGrid';
+import { MEDIA_TYPE, STATUS } from '@/features/media/constants';
 import { useCreateMedia, useUpdateMedia } from '@/features/media/queries';
 import { AddMediaSchema } from '@/features/media/schema';
-import FormSegmentedButtons from '@/shared/components/form/FormSegmentedButtons';
-import FormTextInput from '@/shared/components/form/FormTextInput';
+import FormField from '@/shared/components/design/FormField';
+import { Display, Eyebrow } from '@/shared/components/design/text';
 import AnimatedScreen from '@/shared/components/ui/AnimatedScreen';
 import ConfirmDialog from '@/shared/components/ui/ConfirmDialog';
-import { uploadCoverForMedia } from '@/shared/services/storage';
-import { commonStyles } from '@/shared/styles/common';
+import {
+  captureImageFromCamera,
+  pickImageFromLibrary,
+  uploadCoverForMedia,
+} from '@/shared/services/storage';
+import { useAppTheme } from '@/shared/theme';
 import { showErrorToast } from '@/shared/utils/toast';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { usePreventRemove, type NavigationAction } from '@react-navigation/native';
 import { router, useNavigation } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
+import { Controller, useForm } from 'react-hook-form';
+import { StyleSheet, View } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
-import { Icon, Text, useTheme } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { z } from 'zod';
 
 type FormValues = z.infer<typeof AddMediaSchema>;
 
 const AddItem = () => {
-  const theme = useTheme();
+  const t = useAppTheme();
   const insets = useSafeAreaInsets();
   const ownerId = useCurrentUserId();
   const create = useCreateMedia();
@@ -36,13 +42,17 @@ const AddItem = () => {
 
   const {
     control,
+    watch,
     handleSubmit,
     formState: { isSubmitting, isValid, isDirty },
   } = useForm<FormValues>({
     resolver: zodResolver(AddMediaSchema),
-    defaultValues: { title: '', notes: '', type: 'movie', status: 'plan' },
+    defaultValues: { title: '', notes: '', type: MEDIA_TYPE.MOVIE, status: STATUS.PLAN },
     mode: 'onBlur',
   });
+
+  const currentTitle = watch('title');
+  const currentType = watch('type');
 
   const hasUnsavedChanges = (isDirty || coverUri !== null) && !exitAllowed;
 
@@ -59,7 +69,7 @@ const AddItem = () => {
   useEffect(() => {
     if (!exitAllowed) return;
     router.back();
-    router.replace('/(app)');
+    router.replace('/(app)/(tabs)/library');
   }, [exitAllowed]);
 
   const onSubmit = async ({ title, notes, type, status }: FormValues) => {
@@ -84,86 +94,104 @@ const AddItem = () => {
     setExitAllowed(true);
   };
 
-  const handleGoBack = () => router.back();
+  const handleTakePhoto = async () => {
+    const uri = await captureImageFromCamera();
+    if (uri) setCoverUri(uri);
+  };
+
+  const handlePickImage = async () => {
+    const uri = await pickImageFromLibrary();
+    if (uri) setCoverUri(uri);
+  };
+
   const canSave = isValid && !isSubmitting;
 
   return (
     <AnimatedScreen>
-      <View style={[commonStyles.container, { backgroundColor: theme.colors.background }]}>
-        <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
-          <Pressable onPress={handleGoBack} hitSlop={8}>
-            <Icon source="arrow-left" size={22} color={theme.colors.onBackground} />
-          </Pressable>
-          <Text style={[styles.headerTitle, { color: theme.colors.onBackground }]}>Add Media</Text>
-          <Pressable
-            onPress={handleSubmit(onSubmit)}
-            disabled={!canSave}
-            hitSlop={8}
-            style={!canSave && styles.saveDisabled}
-          >
-            {isSubmitting ? (
-              <ActivityIndicator size="small" color={theme.colors.primary} />
-            ) : (
-              <Icon source="content-save" size={24} color={theme.colors.primary} />
-            )}
-          </Pressable>
-        </View>
+      <View style={[styles.container, { backgroundColor: t.tokens.semantic.bg }]}>
+        <AddItemHeader
+          onBack={() => router.back()}
+          onSave={handleSubmit(onSubmit)}
+          canSave={canSave}
+          isSubmitting={isSubmitting}
+        />
 
         <KeyboardAwareScrollView
+          contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 60 }]}
           keyboardShouldPersistTaps="handled"
-          contentContainerStyle={styles.scrollContent}
           bottomOffset={20}
+          showsVerticalScrollIndicator={false}
         >
-          <View style={styles.section}>
-            <Text style={[styles.sectionLabel, { color: theme.colors.onSurfaceVariant }]}>
-              COVER
-            </Text>
-            <CoverUploader value={coverUri} onChange={setCoverUri} />
+          <View style={styles.title}>
+            <Eyebrow>New entry</Eyebrow>
+            <Display size={30} style={styles.titleText}>
+              Add to your{' '}
+              <Display
+                size={30}
+                style={[styles.italic, { color: t.tokens.semantic.accent }]}
+              >
+                shelf
+              </Display>
+              .
+            </Display>
           </View>
 
           <View style={styles.section}>
-            <Text style={[styles.sectionLabel, { color: theme.colors.onSurfaceVariant }]}>
-              DETAILS
-            </Text>
-            <View style={styles.fieldGroup}>
-              <FormTextInput
+            <Eyebrow style={styles.sectionEyebrow}>Type</Eyebrow>
+            <Controller
+              control={control}
+              name="type"
+              render={({ field: { value, onChange } }) => (
+                <AddTypeGrid value={value} onChange={onChange} />
+              )}
+            />
+          </View>
+
+          <View style={styles.section}>
+            <Eyebrow style={styles.sectionEyebrow}>Cover</Eyebrow>
+            <AddCoverRow
+              coverUri={coverUri}
+              title={currentTitle}
+              type={currentType}
+              onPickImage={handlePickImage}
+              onTakePhoto={handleTakePhoto}
+              onRemove={() => setCoverUri(null)}
+            />
+          </View>
+
+          <View style={styles.section}>
+            <Eyebrow style={styles.sectionEyebrow}>Details</Eyebrow>
+            <View style={styles.fields}>
+              <FormField
                 control={control}
                 name="title"
                 label="Title"
-                textInputProps={{
-                  placeholder: 'Enter title',
-                  returnKeyType: 'next',
-                }}
+                fieldProps={{ placeholder: 'What are you tracking?' }}
               />
-              <FormTextInput
+              <FormField
                 control={control}
                 name="notes"
                 label="Notes"
-                textInputProps={{
-                  placeholder: 'Add notes or thoughts\u2026',
-                  returnKeyType: 'default',
+                fieldProps={{
+                  placeholder: 'Any thoughts or context...',
                   multiline: true,
-                  numberOfLines: 4,
-                  style: styles.notesInput,
                 }}
               />
             </View>
           </View>
 
           <View style={styles.section}>
-            <Text style={[styles.sectionLabel, { color: theme.colors.onSurfaceVariant }]}>
-              TYPE
-            </Text>
-            <FormSegmentedButtons control={control} name="type" buttons={typeButtons} />
-          </View>
-
-          <View style={styles.section}>
-            <Text style={[styles.sectionLabel, { color: theme.colors.onSurfaceVariant }]}>
-              STATUS
-            </Text>
-            <FormSegmentedButtons control={control} name="status" buttons={statusButtons} />
+            <Eyebrow style={styles.sectionEyebrow}>Status</Eyebrow>
+            <Controller
+              control={control}
+              name="status"
+              render={({ field: { value, onChange } }) => (
+                <AddStatusSegmented value={value} onChange={onChange} />
+              )}
+            />
           </View>
         </KeyboardAwareScrollView>
+
         <ConfirmDialog
           visible={pendingExitAction !== null}
           onDismiss={() => setPendingExitAction(null)}
@@ -180,30 +208,29 @@ const AddItem = () => {
 };
 
 const styles = StyleSheet.create({
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingBottom: 12,
-    gap: 16,
+  container: { flex: 1 },
+  scroll: {
+    paddingHorizontal: 24,
+    paddingTop: 12,
   },
-  headerTitle: {
-    fontFamily: 'Inter-Bold',
-    fontSize: 28,
-    letterSpacing: -0.5,
-    flex: 1,
+  title: {
+    paddingBottom: 24,
   },
-  saveDisabled: { opacity: 0.4 },
-  scrollContent: { paddingHorizontal: 20, paddingTop: 8, paddingBottom: 40 },
-  section: { marginBottom: 32 },
-  sectionLabel: {
-    fontFamily: 'Inter-SemiBold',
-    fontSize: 11,
-    letterSpacing: 1,
+  titleText: {
+    marginTop: 6,
+  },
+  italic: {
+    fontStyle: 'italic',
+  },
+  section: {
+    marginBottom: 28,
+  },
+  sectionEyebrow: {
     marginBottom: 12,
   },
-  fieldGroup: { gap: 12 },
-  notesInput: { minHeight: 100, textAlignVertical: 'top' },
+  fields: {
+    gap: 12,
+  },
 });
 
 export default AddItem;

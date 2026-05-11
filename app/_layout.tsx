@@ -1,6 +1,7 @@
 import { useUI } from '@/stores/ui.store';
 import { darkTheme, lightTheme } from '@/shared/theme';
 import { useToastConfig } from '@/shared/hooks/useToastConfig';
+import '@/shared/services/google-signin';
 import { showErrorToast } from '@/shared/utils/toast';
 import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
@@ -25,7 +26,7 @@ const queryClient = new QueryClient({
   mutationCache: new MutationCache({
     onError: (error: Error) => showErrorToast(error),
   }),
-  defaultOptions: { queries: { retry: 1 } },
+  defaultOptions: { queries: { retry: 1, staleTime: 30_000 } },
 });
 
 const RootLayout = () => {

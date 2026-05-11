@@ -1,21 +1,23 @@
-import AnimatedScreen from '@/shared/components/ui/AnimatedScreen';
-import AppButton from '@/shared/components/ui/AppButton';
-import { commonStyles } from '@/shared/styles/common';
-import { showErrorToast } from '@/shared/utils/toast';
-import FormTextInput from '@/shared/components/form/FormTextInput';
-import Logo from '@/shared/components/ui/Logo';
-import { zodResolver } from '@hookform/resolvers/zod';
 import { useGoogleSignIn } from '@/features/auth/hooks/useGoogleSignIn';
 import { SignInSchema, type SignInValues } from '@/features/auth/schema';
+import FormField from '@/shared/components/design/FormField';
+import GoogleButton from '@/shared/components/design/GoogleButton';
+import PrimaryButton from '@/shared/components/design/PrimaryButton';
+import Wordmark from '@/shared/components/design/Wordmark';
+import AnimatedScreen from '@/shared/components/ui/AnimatedScreen';
 import { auth } from '@/shared/services/firebase';
-import { router } from 'expo-router';
+import { useAppTheme } from '@/shared/theme';
+import { showErrorToast } from '@/shared/utils/toast';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { signInWithEmailAndPassword } from '@react-native-firebase/auth';
+import { router } from 'expo-router';
 import { useForm } from 'react-hook-form';
-import { Keyboard, Pressable, StyleSheet, TouchableWithoutFeedback, View } from 'react-native';
-import { Divider, Text, useTheme } from 'react-native-paper';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const SignIn = () => {
-  const theme = useTheme();
+  const t = useAppTheme();
+  const insets = useSafeAreaInsets();
 
   const {
     control,
@@ -39,93 +41,159 @@ const SignIn = () => {
 
   return (
     <AnimatedScreen>
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-        <View style={[commonStyles.authContainer, { backgroundColor: theme.colors.background }]}>
-          <View style={commonStyles.authTitleWrapper}>
-            <Logo variant="wordmark" size="lg" showIcon />
+      <ScrollView
+        style={{ backgroundColor: t.tokens.semantic.bg }}
+        contentContainerStyle={[
+          styles.container,
+          {
+            paddingTop: insets.top + 16,
+            paddingBottom: insets.bottom + 24,
+          },
+        ]}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.center}>
+          <View style={styles.head}>
+            <Wordmark size="lg" />
             <Text
-              variant="bodyMedium"
-              style={[commonStyles.authTitle, { color: theme.colors.onSurfaceVariant }]}
+              style={[
+                styles.subtitle,
+                {
+                  fontFamily: t.tokens.fonts.sansRegular,
+                  color: t.tokens.semantic.inkMute,
+                },
+              ]}
             >
-              Sign in to your account
+              Your stories, still here
             </Text>
           </View>
 
-          <View style={styles.formGroup}>
-            <FormTextInput
+          <View style={styles.fields}>
+            <FormField
               control={control}
               name="email"
               label="Email"
-              textInputProps={{ autoCapitalize: 'none', keyboardType: 'email-address' }}
+              fieldProps={{
+                autoCapitalize: 'none',
+                keyboardType: 'email-address',
+                placeholder: 'you@example.com',
+              }}
             />
-            <FormTextInput
+            <FormField
               control={control}
               name="password"
               label="Password"
-              textInputProps={{ secureTextEntry: true }}
+              fieldProps={{
+                secureTextEntry: true,
+                placeholder: '••••••••',
+              }}
             />
           </View>
 
-          <AppButton
-            mode="contained"
-            style={styles.primaryBtn}
+          <PrimaryButton
+            label="Sign in"
+            onPress={handleSubmit(handleSignIn)}
             loading={isSubmitting}
             disabled={isSubmitting}
-            onPress={handleSubmit(handleSignIn)}
-          >
-            Sign In
-          </AppButton>
+          />
 
-          <View style={styles.dividerRow}>
-            <Divider style={[styles.divider, { backgroundColor: theme.colors.outlineVariant }]} />
-            <Text style={[styles.dividerText, { color: theme.colors.onSurfaceVariant }]}>or</Text>
-            <Divider style={[styles.divider, { backgroundColor: theme.colors.outlineVariant }]} />
+          <View style={styles.divider}>
+            <View
+              style={[styles.dividerLine, { backgroundColor: t.tokens.semantic.hairlineStrong }]}
+            />
+            <Text
+              style={[
+                styles.dividerText,
+                {
+                  fontFamily: t.tokens.fonts.sansRegular,
+                  color: t.tokens.semantic.inkFaint,
+                },
+              ]}
+            >
+              or
+            </Text>
+            <View
+              style={[styles.dividerLine, { backgroundColor: t.tokens.semantic.hairlineStrong }]}
+            />
           </View>
 
-          <AppButton
-            icon="google"
-            mode="outlined"
+          <GoogleButton
+            onPress={signInWithGoogle}
             loading={isSigningIn}
             disabled={!ready || isSigningIn}
-            onPress={signInWithGoogle}
-          >
-            Continue with Google
-          </AppButton>
+          />
 
-          <View style={styles.footerRow}>
-            <Text style={[styles.footerText, { color: theme.colors.onSurfaceVariant }]}>
-              Don't have an account?
+          <View style={styles.footer}>
+            <Text
+              style={{
+                fontFamily: t.tokens.fonts.sansRegular,
+                fontSize: 13,
+                color: t.tokens.semantic.inkMute,
+              }}
+            >
+              New here?{' '}
             </Text>
             <Pressable onPress={() => router.push('/(auth)/sign-up')}>
-              <Text style={[styles.footerLink, { color: theme.colors.primary }]}>Create one</Text>
+              <Text
+                style={{
+                  fontFamily: t.tokens.fonts.sansSemiBold,
+                  fontSize: 13,
+                  color: t.tokens.semantic.accent,
+                }}
+              >
+                Create an account
+              </Text>
             </Pressable>
           </View>
         </View>
-      </TouchableWithoutFeedback>
+      </ScrollView>
     </AnimatedScreen>
   );
 };
 
 const styles = StyleSheet.create({
-  formGroup: { gap: 12, marginBottom: 24 },
-  primaryBtn: { marginBottom: 20 },
-  dividerRow: {
+  container: {
+    flexGrow: 1,
+    paddingHorizontal: 28,
+  },
+  center: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  head: {
+    alignItems: 'center',
+    marginBottom: 36,
+  },
+  subtitle: {
+    marginTop: 14,
+    fontSize: 14,
+  },
+  fields: {
+    gap: 14,
+    marginBottom: 24,
+  },
+  divider: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 16,
-    marginBottom: 20,
+    marginVertical: 20,
   },
-  divider: { flex: 1, height: 1 },
-  dividerText: { fontFamily: 'Inter-Regular', fontSize: 13 },
-  footerRow: {
+  dividerLine: {
+    flex: 1,
+    height: StyleSheet.hairlineWidth,
+  },
+  dividerText: {
+    marginHorizontal: 14,
+    fontSize: 12,
+    letterSpacing: 0.4,
+  },
+  footer: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    gap: 4,
-    marginTop: 32,
+    marginTop: 28,
   },
-  footerText: { fontFamily: 'Inter-Regular', fontSize: 14 },
-  footerLink: { fontFamily: 'Inter-SemiBold', fontSize: 14 },
 });
 
 export default SignIn;

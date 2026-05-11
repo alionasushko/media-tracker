@@ -21,7 +21,16 @@ const AppLayout = () => {
         animationDuration: 200,
         contentStyle: { backgroundColor: theme.colors.background },
       }}
-    />
+    >
+      <Stack.Screen name="(tabs)" />
+      <Stack.Screen
+        name="item/add"
+        options={{
+          presentation: Platform.OS === 'ios' ? 'modal' : 'card',
+        }}
+      />
+      <Stack.Screen name="item/[id]" />
+    </Stack>
   );
 };
 

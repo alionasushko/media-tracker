@@ -1,4 +1,4 @@
-import { useUpdateMediaOptimistic } from '@/features/media/queries';
+import { useUpdateMedia } from '@/features/media/queries';
 import { deleteCoverByUrl, uploadCoverForMedia } from '@/shared/services/storage';
 import { showErrorToast } from '@/shared/utils/toast';
 import { useState } from 'react';
@@ -10,7 +10,7 @@ interface Args {
 }
 
 export const useCoverManager = ({ itemId, ownerId, currentCoverUrl }: Args) => {
-  const update = useUpdateMediaOptimistic(ownerId);
+  const update = useUpdateMedia(ownerId);
   const [isUploading, setIsUploading] = useState(false);
 
   const removeRemoteCover = async (url: string) => {

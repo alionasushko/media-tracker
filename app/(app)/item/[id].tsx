@@ -1,33 +1,38 @@
 import { useCurrentUserId } from '@/features/auth/hooks/useCurrentUserId';
-import CoverUploader from '@/features/media/components/CoverUploader';
-import { statuses } from '@/features/media/constants';
+import DetailActivity from '@/features/media/components/DetailActivity';
+import DetailHeader from '@/features/media/components/DetailHeader';
+import DetailHero from '@/features/media/components/DetailHero';
+import DetailMoreSheet from '@/features/media/components/DetailMoreSheet';
+import DetailNotes from '@/features/media/components/DetailNotes';
+import DetailRating from '@/features/media/components/DetailRating';
+import DetailStatusFab from '@/features/media/components/DetailStatusFab';
+import DetailTags from '@/features/media/components/DetailTags';
+import DetailTitleBlock from '@/features/media/components/DetailTitleBlock';
+import DoneFlash from '@/features/media/components/DoneFlash';
+import { STATUS } from '@/features/media/constants';
 import { useCoverManager } from '@/features/media/hooks/useCoverManager';
-import {
-  useDeleteMedia,
-  useUpdateMediaOptimistic,
-  useUserMediaEntry,
-} from '@/features/media/queries';
+import { useDeleteMedia, useUpdateMedia, useUserMediaEntry } from '@/features/media/queries';
 import type { Status } from '@/features/media/types';
 import AnimatedScreen from '@/shared/components/ui/AnimatedScreen';
 import ConfirmDialog from '@/shared/components/ui/ConfirmDialog';
-import Rating from '@/shared/components/ui/Rating';
-import { deleteCoverByUrl } from '@/shared/services/storage';
+import { captureImageFromCamera, pickImageFromLibrary } from '@/shared/services/storage';
 import { commonStyles } from '@/shared/styles/common';
+import { useAppTheme } from '@/shared/theme';
 import { router, useLocalSearchParams } from 'expo-router';
-import { useEffect, useRef, useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
-import { Chip, Icon, Text, TextInput, useTheme } from 'react-native-paper';
+import { useState } from 'react';
+import { View } from 'react-native';
+import Animated, { useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useDebouncedCallback } from 'use-debounce';
+
+const DONE_FLASH_MS = 1200;
 
 const ItemDetail = () => {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { data } = useUserMediaEntry(id);
-  const theme = useTheme();
+  const t = useAppTheme();
   const insets = useSafeAreaInsets();
   const ownerId = useCurrentUserId() ?? '';
-  const update = useUpdateMediaOptimistic(ownerId);
+  const update = useUpdateMedia(ownerId);
   const del = useDeleteMedia(ownerId);
   const { uploadCover, deleteCover, isUploading } = useCoverManager({
     itemId: id,
@@ -36,153 +41,100 @@ const ItemDetail = () => {
   });
 
   const [deleteVisible, setDeleteVisible] = useState(false);
-  const [notes, setNotes] = useState(data?.notes ?? '');
-  const lastSaved = useRef(data?.notes ?? '');
+  const [moreOpen, setMoreOpen] = useState(false);
+  const [doneFlash, setDoneFlash] = useState(false);
 
-  useEffect(() => {
-    if (data?.notes !== undefined && data.notes !== lastSaved.current) {
-      setNotes(data.notes);
-      lastSaved.current = data.notes;
-    }
-  }, [data?.notes]);
-
-  const saveNotes = useDebouncedCallback((text: string) => {
-    const trimmed = text.trim();
-    if (trimmed === lastSaved.current) return;
-    lastSaved.current = trimmed;
-    update.mutate({ id, patch: { notes: trimmed } });
-  }, 800);
-
-  const handleNotesChange = (text: string) => {
-    setNotes(text);
-    saveNotes(text);
-  };
-
-  const handleNotesBlur = () => {
-    saveNotes.flush();
-  };
+  const scrollY = useSharedValue(0);
+  const scrollHandler = useAnimatedScrollHandler({
+    onScroll: (e) => {
+      scrollY.value = e.contentOffset.y;
+    },
+  });
 
   if (!data) return null;
 
-  const handleMarkStatus = async (status: Status) => {
-    await update.mutateAsync({ id, patch: { status } });
-  };
-
-  const handleChangeRating = async (v: number) => {
-    await update.mutateAsync({ id, patch: { rating: v } });
-  };
-
-  const handleClearRating = () => update.mutate({ id, patch: { rating: 0 } });
-
-  const handleConfirmDelete = async () => {
-    setDeleteVisible(false);
-    if (data.coverUrl) {
-      try {
-        await deleteCoverByUrl(data.coverUrl);
-      } catch (e) {
-        console.error('[ItemDetail] failed to delete cover on remove:', e);
-      }
+  const handleMarkStatus = (status: Status) => {
+    if (status === STATUS.DONE) {
+      setDoneFlash(true);
+      setTimeout(() => setDoneFlash(false), DONE_FLASH_MS);
     }
-    await del.mutateAsync(id);
-    router.back();
+    update.mutate({ id, patch: { status } });
   };
 
-  const handleGoBack = () => router.back();
+  const handleChangeRating = (v: number) => update.mutate({ id, patch: { rating: v } });
+  const handleClearRating = () => update.mutate({ id, patch: { rating: 0 } });
+  const handleSaveNotes = (notes: string) => update.mutate({ id, patch: { notes } });
 
-  const handleCoverChange = (uri: string | null) => {
-    if (uri === null) deleteCover();
-    else uploadCover(uri);
+  const handleConfirmDelete = () => {
+    setDeleteVisible(false);
+    del.mutate({ id, coverUrl: data.coverUrl }, { onSuccess: () => router.back() });
   };
+
+  const handleReplaceCover = async () => {
+    const uri = await pickImageFromLibrary();
+    if (uri) uploadCover(uri);
+  };
+
+  const handleTakeCoverPhoto = async () => {
+    const uri = await captureImageFromCamera();
+    if (uri) uploadCover(uri);
+  };
+
+  const handleRemoveCover = () => deleteCover();
 
   return (
     <AnimatedScreen>
-      <View style={[commonStyles.container, { backgroundColor: theme.colors.background }]}>
-        <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
-          <Pressable onPress={handleGoBack} hitSlop={8}>
-            <Icon source="arrow-left" size={22} color={theme.colors.onBackground} />
-          </Pressable>
-          <View style={styles.headerTitleWrap}>
-            <Text
-              style={[styles.headerTitle, { color: theme.colors.onBackground }]}
-              numberOfLines={1}
-            >
-              {data.title}
-            </Text>
-          </View>
-          <Pressable onPress={() => setDeleteVisible(true)} hitSlop={8}>
-            <Icon source="delete-outline" size={22} color={theme.colors.error} />
-          </Pressable>
-        </View>
+      <View style={[commonStyles.container, { backgroundColor: t.tokens.semantic.bg }]}>
+        <DetailHeader
+          title={data.title}
+          scrollY={scrollY}
+          onBack={() => router.back()}
+          onMore={() => setMoreOpen(true)}
+        />
 
-        <KeyboardAwareScrollView
-          contentContainerStyle={styles.scrollContent}
+        <Animated.ScrollView
+          onScroll={scrollHandler}
+          scrollEventThrottle={16}
+          contentContainerStyle={{ paddingBottom: insets.bottom + 140 }}
           keyboardShouldPersistTaps="handled"
-          bottomOffset={20}
+          showsVerticalScrollIndicator={false}
         >
-          <CoverUploader
-            value={data.coverUrl ?? null}
-            loading={isUploading}
-            onChange={handleCoverChange}
+          <DetailHero
+            coverUrl={data.coverUrl}
+            title={data.title}
+            type={data.type}
+            scrollY={scrollY}
+            isUploading={isUploading}
           />
+          <DetailTitleBlock title={data.title} type={data.type} status={data.status} />
+          <DetailRating
+            rating={data.rating ?? 0}
+            onChange={handleChangeRating}
+            onClear={handleClearRating}
+          />
+          <DetailNotes serverNotes={data.notes ?? ''} onSave={handleSaveNotes} />
+          <DetailTags tags={data.tags ?? []} />
+          <DetailActivity
+            status={data.status}
+            createdAt={data.createdAt}
+            updatedAt={data.updatedAt}
+          />
+        </Animated.ScrollView>
 
-          <View style={styles.titleSection}>
-            <Text style={[styles.title, { color: theme.colors.onSurface }]}>{data.title}</Text>
-            <Text style={[styles.typeLabel, { color: theme.colors.onSurfaceVariant }]}>
-              {data.type.toUpperCase()}
-            </Text>
-          </View>
+        <DetailStatusFab current={data.status} onChange={handleMarkStatus} />
 
-          <View style={styles.section}>
-            <Text style={[styles.sectionLabel, { color: theme.colors.onSurfaceVariant }]}>
-              STATUS
-            </Text>
-            <View style={styles.chipRow}>
-              {statuses.map((s) => (
-                <Chip
-                  key={s}
-                  selected={data.status === s}
-                  onPress={() => handleMarkStatus(s)}
-                  mode={data.status === s ? 'flat' : 'outlined'}
-                  style={styles.chip}
-                  textStyle={styles.chipText}
-                >
-                  {s}
-                </Chip>
-              ))}
-            </View>
-          </View>
+        <DoneFlash visible={doneFlash} />
 
-          <View style={styles.section}>
-            <Text style={[styles.sectionLabel, { color: theme.colors.onSurfaceVariant }]}>
-              RATING
-            </Text>
-            <View style={styles.ratingRow}>
-              <Rating value={data.rating || 0} onChange={handleChangeRating} />
-              {(data.rating ?? 0) > 0 ? (
-                <Pressable onPress={handleClearRating}>
-                  <Text style={[styles.clearText, { color: theme.colors.onSurfaceVariant }]}>
-                    Clear
-                  </Text>
-                </Pressable>
-              ) : null}
-            </View>
-          </View>
+        <DetailMoreSheet
+          visible={moreOpen}
+          hasCover={!!data.coverUrl}
+          onClose={() => setMoreOpen(false)}
+          onReplaceCover={handleReplaceCover}
+          onTakePhoto={handleTakeCoverPhoto}
+          onRemoveCover={handleRemoveCover}
+          onDelete={() => setDeleteVisible(true)}
+        />
 
-          <View style={styles.section}>
-            <Text style={[styles.sectionLabel, { color: theme.colors.onSurfaceVariant }]}>
-              NOTES
-            </Text>
-            <TextInput
-              value={notes}
-              onChangeText={handleNotesChange}
-              onBlur={handleNotesBlur}
-              placeholder="Add notes or thoughts"
-              multiline
-              maxLength={1000}
-              style={styles.notesInput}
-            />
-          </View>
-        </KeyboardAwareScrollView>
         <ConfirmDialog
           visible={deleteVisible}
           onDismiss={() => setDeleteVisible(false)}
@@ -196,42 +148,5 @@ const ItemDetail = () => {
     </AnimatedScreen>
   );
 };
-
-const styles = StyleSheet.create({
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingBottom: 12,
-    gap: 16,
-  },
-  headerTitleWrap: { flex: 1 },
-  headerTitle: {
-    fontFamily: 'Inter-SemiBold',
-    fontSize: 17,
-    letterSpacing: -0.2,
-  },
-  scrollContent: { paddingHorizontal: 20, paddingTop: 4, paddingBottom: 40, gap: 24 },
-  titleSection: { gap: 2 },
-  title: { fontFamily: 'Inter-Bold', fontSize: 22, letterSpacing: -0.3 },
-  typeLabel: {
-    fontFamily: 'Inter-Medium',
-    fontSize: 11,
-    letterSpacing: 1,
-    textTransform: 'uppercase',
-  },
-  section: { gap: 10 },
-  sectionLabel: {
-    fontFamily: 'Inter-SemiBold',
-    fontSize: 11,
-    letterSpacing: 1,
-  },
-  chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  chip: { borderRadius: 10 },
-  chipText: { fontFamily: 'Inter-Medium', fontSize: 13, textTransform: 'capitalize' },
-  ratingRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  clearText: { fontFamily: 'Inter-Medium', fontSize: 13 },
-  notesInput: { minHeight: 100, textAlignVertical: 'top' },
-});
 
 export default ItemDetail;

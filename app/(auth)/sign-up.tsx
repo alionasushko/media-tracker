@@ -1,30 +1,36 @@
-import AnimatedScreen from '@/shared/components/ui/AnimatedScreen';
-import AppButton from '@/shared/components/ui/AppButton';
-import { commonStyles } from '@/shared/styles/common';
-import { showErrorToast } from '@/shared/utils/toast';
-import FormTextInput from '@/shared/components/form/FormTextInput';
-import Logo from '@/shared/components/ui/Logo';
-import { zodResolver } from '@hookform/resolvers/zod';
+import PasswordStrengthMeter from '@/features/auth/components/PasswordStrengthMeter';
 import { useGoogleSignIn } from '@/features/auth/hooks/useGoogleSignIn';
 import { SignUpSchema, type SignUpValues } from '@/features/auth/schema';
+import FormField from '@/shared/components/design/FormField';
+import GoogleButton from '@/shared/components/design/GoogleButton';
+import PrimaryButton from '@/shared/components/design/PrimaryButton';
+import Wordmark from '@/shared/components/design/Wordmark';
+import AnimatedScreen from '@/shared/components/ui/AnimatedScreen';
 import { auth } from '@/shared/services/firebase';
-import { router } from 'expo-router';
+import { useAppTheme } from '@/shared/theme';
+import { showErrorToast } from '@/shared/utils/toast';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { createUserWithEmailAndPassword, updateProfile } from '@react-native-firebase/auth';
+import { router } from 'expo-router';
 import { useForm } from 'react-hook-form';
-import { Keyboard, Pressable, StyleSheet, TouchableWithoutFeedback, View } from 'react-native';
-import { Divider, Text, useTheme } from 'react-native-paper';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const SignUp = () => {
-  const theme = useTheme();
+  const t = useAppTheme();
+  const insets = useSafeAreaInsets();
 
   const {
     control,
+    watch,
     handleSubmit,
     formState: { isSubmitting },
   } = useForm<SignUpValues>({
     resolver: zodResolver(SignUpSchema),
     defaultValues: { name: '', email: '', password: '' },
   });
+
+  const password = watch('password') ?? '';
 
   const { signInWithGoogle, isSigningIn, ready } = useGoogleSignIn();
 
@@ -40,94 +46,156 @@ const SignUp = () => {
 
   return (
     <AnimatedScreen>
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-        <View style={[commonStyles.authContainer, { backgroundColor: theme.colors.background }]}>
-          <View style={commonStyles.authTitleWrapper}>
-            <Logo variant="wordmark" size="lg" showIcon />
+      <View style={[styles.container, { backgroundColor: t.tokens.semantic.bg }]}>
+        <ScrollView
+          contentContainerStyle={[
+            styles.scroll,
+            { paddingTop: insets.top + 28, paddingBottom: insets.bottom + 32 },
+          ]}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
+        >
+          <View style={styles.head}>
+            <Wordmark size="lg" />
             <Text
-              variant="bodyMedium"
-              style={[commonStyles.authTitle, { color: theme.colors.onSurfaceVariant }]}
+              style={[
+                styles.subtitle,
+                { fontFamily: t.tokens.fonts.sansRegular, color: t.tokens.semantic.inkMute },
+              ]}
             >
-              Create your account
+              A small space for big stories
             </Text>
           </View>
 
-          <View style={styles.formGroup}>
-            <FormTextInput control={control} name="name" label="Name" />
-            <FormTextInput
+          <View style={styles.fields}>
+            <FormField
+              control={control}
+              name="name"
+              label="Name"
+              fieldProps={{ placeholder: 'Your name' }}
+            />
+            <FormField
               control={control}
               name="email"
               label="Email"
-              textInputProps={{ autoCapitalize: 'none', keyboardType: 'email-address' }}
+              fieldProps={{
+                autoCapitalize: 'none',
+                keyboardType: 'email-address',
+                placeholder: 'you@example.com',
+              }}
             />
-            <FormTextInput
+            <FormField
               control={control}
               name="password"
               label="Password"
-              textInputProps={{ secureTextEntry: true }}
+              helper="8+ chars · upper · lower · number · symbol"
+              fieldProps={{ secureTextEntry: true, placeholder: '••••••••' }}
             />
           </View>
 
-          <AppButton
-            mode="contained"
-            style={styles.primaryBtn}
+          <PasswordStrengthMeter password={password} />
+
+          <PrimaryButton
+            label="Create account"
+            onPress={handleSubmit(handleSignUp)}
             loading={isSubmitting}
             disabled={isSubmitting}
-            onPress={handleSubmit(handleSignUp)}
-          >
-            Create Account
-          </AppButton>
+          />
 
-          <View style={styles.dividerRow}>
-            <Divider style={[styles.divider, { backgroundColor: theme.colors.outlineVariant }]} />
-            <Text style={[styles.dividerText, { color: theme.colors.onSurfaceVariant }]}>or</Text>
-            <Divider style={[styles.divider, { backgroundColor: theme.colors.outlineVariant }]} />
+          <View style={styles.divider}>
+            <View
+              style={[styles.dividerLine, { backgroundColor: t.tokens.semantic.hairlineStrong }]}
+            />
+            <Text
+              style={[
+                styles.dividerText,
+                { fontFamily: t.tokens.fonts.sansRegular, color: t.tokens.semantic.inkFaint },
+              ]}
+            >
+              or
+            </Text>
+            <View
+              style={[styles.dividerLine, { backgroundColor: t.tokens.semantic.hairlineStrong }]}
+            />
           </View>
 
-          <AppButton
-            icon="google"
-            mode="outlined"
+          <GoogleButton
+            onPress={signInWithGoogle}
             loading={isSigningIn}
             disabled={!ready || isSigningIn}
-            onPress={signInWithGoogle}
-          >
-            Continue with Google
-          </AppButton>
+          />
 
-          <View style={styles.footerRow}>
-            <Text style={[styles.footerText, { color: theme.colors.onSurfaceVariant }]}>
-              Already have an account?
+          <View style={styles.footer}>
+            <Text
+              style={[
+                styles.footerText,
+                { fontFamily: t.tokens.fonts.sansRegular, color: t.tokens.semantic.inkMute },
+              ]}
+            >
+              Already have one?{' '}
             </Text>
             <Pressable onPress={() => router.push('/(auth)/sign-in')}>
-              <Text style={[styles.footerLink, { color: theme.colors.primary }]}>Sign in</Text>
+              <Text
+                style={[
+                  styles.footerLink,
+                  { fontFamily: t.tokens.fonts.sansSemiBold, color: t.tokens.semantic.accent },
+                ]}
+              >
+                Sign in
+              </Text>
             </Pressable>
           </View>
-        </View>
-      </TouchableWithoutFeedback>
+        </ScrollView>
+      </View>
     </AnimatedScreen>
   );
 };
 
 const styles = StyleSheet.create({
-  formGroup: { gap: 12, marginBottom: 24 },
-  primaryBtn: { marginBottom: 20 },
-  dividerRow: {
+  container: { flex: 1 },
+  scroll: {
+    flexGrow: 1,
+    paddingHorizontal: 28,
+    justifyContent: 'center',
+  },
+  head: {
+    alignItems: 'center',
+    marginBottom: 28,
+  },
+  subtitle: {
+    marginTop: 14,
+    fontSize: 14,
+  },
+  fields: {
+    gap: 14,
+    marginBottom: 14,
+  },
+  divider: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 16,
-    marginBottom: 20,
+    marginVertical: 20,
   },
-  divider: { flex: 1, height: 1 },
-  dividerText: { fontFamily: 'Inter-Regular', fontSize: 13 },
-  footerRow: {
+  dividerLine: {
+    flex: 1,
+    height: StyleSheet.hairlineWidth,
+  },
+  dividerText: {
+    marginHorizontal: 14,
+    fontSize: 12,
+    letterSpacing: 0.4,
+  },
+  footer: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    gap: 4,
-    marginTop: 32,
+    marginTop: 24,
   },
-  footerText: { fontFamily: 'Inter-Regular', fontSize: 14 },
-  footerLink: { fontFamily: 'Inter-SemiBold', fontSize: 14 },
+  footerText: {
+    fontSize: 13,
+  },
+  footerLink: {
+    fontSize: 13,
+  },
 });
 
 export default SignUp;
