@@ -1,5 +1,7 @@
 import { useUI } from '@/stores/ui.store';
 import { darkTheme, lightTheme } from '@/shared/theme';
+import OfflineBanner from '@/shared/components/ui/OfflineBanner';
+import { useOnlineStatus } from '@/shared/hooks/useOnlineStatus';
 import { useToastConfig } from '@/shared/hooks/useToastConfig';
 import '@/shared/services/google-signin';
 import { showErrorToast } from '@/shared/utils/toast';
@@ -10,11 +12,11 @@ import * as SystemUI from 'expo-system-ui';
 import { MutationCache, QueryCache, QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Slot } from 'expo-router';
 import { useEffect } from 'react';
-import { useColorScheme } from 'react-native';
+import { useColorScheme, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { Provider as PaperProvider } from 'react-native-paper';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaInsetsContext, useSafeAreaInsets } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
 
 SplashScreen.preventAutoHideAsync();
@@ -34,6 +36,8 @@ const RootLayout = () => {
   const systemScheme = useColorScheme();
   const toastConfig = useToastConfig();
   const insets = useSafeAreaInsets();
+  const isOnline = useOnlineStatus();
+  const slotInsets = isOnline ? insets : { ...insets, top: 0 };
 
   const resolvedMode = themePref === 'system' ? (systemScheme ?? 'light') : themePref;
   const theme = resolvedMode === 'dark' ? darkTheme : lightTheme;
@@ -64,7 +68,14 @@ const RootLayout = () => {
         <KeyboardProvider>
           <PaperProvider theme={theme}>
             <StatusBar style={resolvedMode === 'dark' ? 'light' : 'dark'} />
-            <Slot />
+            <View style={{ flex: 1 }}>
+              {!isOnline ? <OfflineBanner /> : null}
+              <SafeAreaInsetsContext.Provider value={slotInsets}>
+                <View style={{ flex: 1 }}>
+                  <Slot />
+                </View>
+              </SafeAreaInsetsContext.Provider>
+            </View>
             <Toast config={toastConfig} topOffset={insets.top + 12} />
           </PaperProvider>
         </KeyboardProvider>
