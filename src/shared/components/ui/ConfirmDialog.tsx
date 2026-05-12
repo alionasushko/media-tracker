@@ -1,5 +1,5 @@
-import { StyleSheet } from 'react-native';
-import { Button, Dialog, Portal, Text, useTheme } from 'react-native-paper';
+import { useAppTheme } from '@/shared/theme';
+import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 
 interface Props {
   visible: boolean;
@@ -22,31 +22,102 @@ const ConfirmDialog = ({
   onDismiss,
   onConfirm,
 }: Props) => {
-  const theme = useTheme();
+  const t = useAppTheme();
+  const confirmColor = destructive ? t.tokens.semantic.statusDropped : t.tokens.semantic.accent;
   return (
-    <Portal>
-      <Dialog visible={visible} onDismiss={onDismiss} style={styles.dialog}>
-        <Dialog.Title style={styles.title}>{title}</Dialog.Title>
-        <Dialog.Content>
-          <Text variant="bodyMedium">{message}</Text>
-        </Dialog.Content>
-        <Dialog.Actions>
-          <Button onPress={onDismiss}>{cancelLabel}</Button>
-          <Button
-            textColor={destructive ? theme.colors.error : undefined}
-            onPress={onConfirm}
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onDismiss}>
+      <Pressable style={styles.backdrop} onPress={onDismiss}>
+        <View
+          style={[
+            styles.dialog,
+            {
+              backgroundColor: t.tokens.semantic.surface1,
+              borderColor: t.tokens.semantic.hairlineStrong,
+            },
+          ]}
+          onStartShouldSetResponder={() => true}
+        >
+          <Text
+            style={[
+              styles.title,
+              { fontFamily: t.tokens.fonts.sansSemiBold, color: t.tokens.semantic.ink },
+            ]}
           >
-            {confirmLabel}
-          </Button>
-        </Dialog.Actions>
-      </Dialog>
-    </Portal>
+            {title}
+          </Text>
+          <Text
+            style={[
+              styles.message,
+              { fontFamily: t.tokens.fonts.sansRegular, color: t.tokens.semantic.inkMute },
+            ]}
+          >
+            {message}
+          </Text>
+          <View style={styles.actions}>
+            <Pressable onPress={onDismiss} style={styles.btn}>
+              <Text
+                style={[
+                  styles.btnLabel,
+                  { fontFamily: t.tokens.fonts.sansSemiBold, color: t.tokens.semantic.inkMute },
+                ]}
+              >
+                {cancelLabel}
+              </Text>
+            </Pressable>
+            <Pressable onPress={onConfirm} style={styles.btn}>
+              <Text
+                style={[
+                  styles.btnLabel,
+                  { fontFamily: t.tokens.fonts.sansSemiBold, color: confirmColor },
+                ]}
+              >
+                {confirmLabel}
+              </Text>
+            </Pressable>
+          </View>
+        </View>
+      </Pressable>
+    </Modal>
   );
 };
 
 const styles = StyleSheet.create({
-  dialog: { borderRadius: 16 },
-  title: { fontFamily: 'Inter-SemiBold', fontSize: 18 },
+  backdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 24,
+  },
+  dialog: {
+    width: '100%',
+    maxWidth: 360,
+    borderRadius: 18,
+    padding: 22,
+    borderWidth: StyleSheet.hairlineWidth,
+  },
+  title: {
+    fontSize: 18,
+    marginBottom: 8,
+  },
+  message: {
+    fontSize: 14,
+    lineHeight: 20,
+    marginBottom: 18,
+  },
+  actions: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: 4,
+  },
+  btn: {
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+  },
+  btnLabel: {
+    fontSize: 14,
+    letterSpacing: 0.2,
+  },
 });
 
 export default ConfirmDialog;
