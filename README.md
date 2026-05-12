@@ -2,6 +2,8 @@
 
 > Expo + Firebase app to track movies, shows, books, and games.
 
+https://github.com/user-attachments/assets/3308201e-6de0-4f91-90df-6dcc1d749675
+
 ## Stack
 
 - Expo SDK 54 (React Native, Expo Router) on `expo-dev-client`
