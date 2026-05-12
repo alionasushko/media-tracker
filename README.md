@@ -4,19 +4,29 @@
 
 ## Stack
 
-- Expo (React Native), Expo Router
-- React Native Paper
-- Zustand + TanStack Query
+- Expo SDK 54 (React Native, Expo Router) on `expo-dev-client`
+- UI: custom design system with theme tokens (InstrumentSans + JetBrainsMono fonts) in `src/shared/components/design/`; React Native Paper provides the theme provider plus `TextInput` / `HelperText` for forms
+- State: Zustand (UI/theme/filters, persisted) + TanStack Query (server state, optimistic updates)
+- Forms: react-hook-form + zod via `zodResolver`
 - React Native Firebase (Auth + Firestore + Storage)
 - Native Google Sign-In via `@react-native-google-signin/google-signin`
+- Offline detection: `@react-native-community/netinfo`
 
 ## Features
 
-- Sign In / Sign Up: Email/password + native Google account picker → routes to your library.
-- Library: Card list of your media; quick access to details; supports search, filters, sort.
-- Item Details: View full info, notes, status, and rating; open edit/delete actions.
-- Add / Edit Item: Form to create or update media entries; persists to Firestore.
-- Settings: App preferences and account actions (e.g., sign out).
+Organised around a four-tab navigation:
+
+- **Home**: Personalised greeting, activity heatmap, and an "Up Next" shelf of in-progress media.
+- **Library**: Tile grid of all your media with search, filter, and sort.
+- **Stats**: Hero summary, streaks, completion funnel, type donut, monthly activity bars, rating histogram, and tag cloud.
+- **Settings**: Theme selection, account info, and sign-out.
+
+Plus:
+
+- **Sign In / Sign Up**: Email/password + native Google account picker.
+- **Item Details**: Full info, notes, status, and rating with edit / delete actions.
+- **Add / Edit Item**: Form with cover upload (via `expo-image-manipulator` + Firebase Storage) and unsaved-changes protection.
+- **Offline banner**: Surfaces when the device loses connectivity.
 
 ## Setup
 
@@ -46,9 +56,9 @@ credential files, **not** via `.env`.
 - Create (or open) your Firebase project.
 - **Authentication → Sign-in method → Google** → Enable, set a support email.
 - **Project settings → Your apps**:
-  - Add an **iOS app**. Bundle ID: `com.alionasushko.mediatracker` (matches
+  - Add an **iOS app**. Bundle ID: `com.<yourname>.mediatracker` (matches
     `app.json` → `ios.bundleIdentifier`). Download `GoogleService-Info.plist`.
-  - Add an **Android app**. Package name: `com.alionasushko.mediatracker` (matches
+  - Add an **Android app**. Package name: `com.<yourname>.mediatracker` (matches
     `app.json` → `android.package`). Add your debug and release SHA-1 fingerprints
     (`eas credentials` or `./gradlew signingReport`). Download `google-services.json`.
 - **Firestore** → create database (test mode for dev). Add rules
@@ -80,14 +90,20 @@ Both are referenced from `app.json` via `ios.googleServicesFile` and
 
 #### 4) Environment variables (`.env`)
 
-Only one variable is needed. Everything else comes from the credential files.
+Everything else comes from the credential files.
 
 ```
 EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID=<Web client ID from step 2>
+EXPO_PUBLIC_USE_EMULATOR=false
 ```
 
 The Web client ID is required by `GoogleSignin.configure()` so that the Google
 SDK requests an ID token that Firebase Auth can accept.
+
+Set `EXPO_PUBLIC_USE_EMULATOR=true` to point Auth and Firestore at the local
+Firebase emulator suite (`127.0.0.1:9099` and `127.0.0.1:8080`). Only takes
+effect in `__DEV__` builds. Leave as `false` to talk to your real Firebase
+project.
 
 #### 5) Build the dev client
 
@@ -123,7 +139,7 @@ The project uses a few config plugins that are load-bearing for auth:
 
 ### Error handling
 
-Firebase auth errors are surfaced as toasts via `src/utils/helpers/toast.ts`.
+Firebase auth errors are surfaced as toasts via `src/shared/utils/toast.ts`.
 Common codes:
 
 - `auth/invalid-credential`, `auth/wrong-password` — wrong email or password.
